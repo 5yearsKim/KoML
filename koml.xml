@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<koml>
+  <case>
+    <pattern>안녕</pattern>
+    <subpat>하이</subpat>
+    <template>안녕~~~</template>
+  </case>
+
+  <case>
+    <pattern>넌 이름_s 뭐야?</pattern>
+    <subpat>
+      <li>이름_s 뭐야?</li>
+      <li>너_ 이름_o 뭐야?</li>
+      <li>너_ 이름_o 알려줄래?</li>
+      <li>너_ 이름_o 알려줘</li>
+      <li>이름_o 알려줄래?</li>
+    </subpat>
+    <template>내 이름은 <bot get='name'/>야.</template>
+  </case>
+
+  <case id='like_1'>
+    <pattern>너_s <star set='like'/>_ 좋아해?</pattern>
+    <subpat>
+      <li><star/>_ 좋아해?</li>
+      <li><star/>_ 좋아?</li>
+    </subpat>
+    <template>응ㅋㅋ 좋아하지</template>
+  </case>
+
+  <postcase prev='like_1'>
+    <pattern>왜?</pattern>
+    <subpat>
+      <li>왜 좋아해?</li>
+      <li>이유가 뭐야?</li>
+      <li>이유는?</li>
+    </subpat>
+    <template>음.. <star get='like'/> 그냥 생각하면 기분이 좋아져ㅋㅋ</template>
+  </postcase>
+
+  <case>
+    <pattern>내 이름은 <star/></pattern>
+    <template>안녕 <user set='name'><star/></user>! 만나서 반가워ㅋㅋ</template>
+  </case>
+</koml>
