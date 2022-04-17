@@ -1,8 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE xml>
 <koml>
   <case>
     <pattern>안녕</pattern>
-    <subpat>하이</subpat>
+    <subpat>
+      <li>하이</li>
+    </subpat>
     <template>안녕~~~</template>
   </case>
 
@@ -18,16 +21,17 @@
     <template>내 이름은 <bot get='name'/>야.</template>
   </case>
 
-  <case id='like_1'>
+  <case>
     <pattern>너_s <star set='like'/>_ 좋아해?</pattern>
     <subpat>
       <li><star/>_ 좋아해?</li>
       <li><star/>_ 좋아?</li>
     </subpat>
-    <template>응ㅋㅋ 좋아하지</template>
+    <template id='like_1'>응ㅋㅋ 좋아하지</template>
   </case>
 
-  <postcase prev='like_1'>
+  <case>
+    <follow tid='like_1'/>
     <pattern>왜?</pattern>
     <subpat>
       <li>왜 좋아해?</li>
@@ -35,10 +39,21 @@
       <li>이유는?</li>
     </subpat>
     <template>음.. <star get='like'/> 그냥 생각하면 기분이 좋아져ㅋㅋ</template>
-  </postcase>
+  </case>
 
   <case>
     <pattern>내 이름은 <star/></pattern>
     <template>안녕 <user set='name'><star/></user>! 만나서 반가워ㅋㅋ</template>
   </case>
+
+  <!-- <case>
+    <pattern>너 내 <star set='tmp'/>_s 뭔지 알아?</pattern>
+    <subpat>
+      <li>내 <star/>_o 알아?</li>
+    </subpat>
+    <if>
+
+    </if>
+    <template></template>
+  </case> -->
 </koml>
