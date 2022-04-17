@@ -42,7 +42,7 @@ class Pattern(Tag):
     child: List[Text | WildCard | PatStar]
 
 class Subpat(Tag):
-    child: List[Li] 
+    child: List[Li]
 
 class Template(Tag):
     child: List[Any] | Random
@@ -54,4 +54,3 @@ class Case(Tag):
     pattern: Pattern
     subpat: Subpat| None
     template: Template
-    

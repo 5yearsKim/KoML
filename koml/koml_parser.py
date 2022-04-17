@@ -180,3 +180,10 @@ class KomlHandler(xml.sax.ContentHandler):
         if content == '\n' or content.isspace():
             return
         self.case_stack.push_content(content)
+
+def create_parser():
+    parser = xml.sax.make_parser()
+    handler = KomlHandler()
+    parser.setContentHandler(handler)
+    return parser
+

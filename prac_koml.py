@@ -1,17 +1,16 @@
-import xml
-from koml.koml_parser import KomlHandler
+from koml.koml_parser import create_parser
+from koml.kernel import Kernel
 
 if __name__ == '__main__':
-    parser = xml.sax.make_parser()
-    parser.setFeature(xml.sax.handler.feature_namespaces, 0)
+    # parser = create_parser()
+    # parser.parse("koml.xml")
+    # handler = parser.getContentHandler()
 
-    Handler = KomlHandler()
-    parser.setContentHandler( Handler )
-
-    parser.parse("koml.xml")
-    handler = parser.getContentHandler()
-
-    cases = handler.cases
-    for case in cases:
-        print(case)
-        print('------------')
+    # cases = handler.cases
+    # for case in cases:
+    #     print(case)
+    #     print('------------')
+    from glob import glob
+    kernel = Kernel()
+    files = glob('koml.xml')
+    kernel.learn(files)
