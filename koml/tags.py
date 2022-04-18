@@ -1,8 +1,9 @@
 from pydantic import BaseModel
-from typing import List, Any
+from typing import List, Any, Optional, Union
+from .config import WILDCARDS
 
 class Tag(BaseModel):
-    child: List[Any] | None
+    child: Optional[List[Any]]
 #--------------------#
 
 class Text(Tag):
@@ -10,47 +11,76 @@ class Text(Tag):
 
 class WildCard(Tag):
     val: str
+    # allow value --
 
 class PatStar(Tag):
-    idx: int | None
-    set: str | None
-    pos: List[str] | None
-    npos: List[str] | None
+    idx: Optional[int]
+    set: Optional[str]
+    pos: Optional[List[str]]
+    npos: Optional[List[str]]
+    # idx > 0
 
 class Star(Tag):
-    idx: int | None
-    set: str | None
-    get: str | None
+    idx: Optional[int]
+    set: Optional[str]
+    get: Optional[str]
+    # idx > 0
 
 class Li(Tag):
-    tmp: str | None
-
-class User(Tag):
-    set: str | None
-    get: str | None
-
-class Bot(Tag):
-    set: str | None
-    get: str | None
-
-class Random(Tag):
     pass
 
+
+class User(Tag):
+    set: Optional[str]
+    get: Optional[str]
+
+class Bot(Tag):
+    set: Optional[str]
+    get: Optional[str]
+
+# PatternT = List[Union[ PatStar, WildCard, Text]]
+PatternT = List[Any]
+# TemplateT = List[Union[User, Bot, WildCard, Text, Star, ]]
+TemplateT = List[Any]
+
+class PatLi(Li):
+    child: PatternT 
+
+class TemLi(Li):
+    child: TemplateT 
 #-----------------#
 
+class Follow(Tag):
+    cid: Optional[str]
+    child: Optional[List[PatLi]]
+    # cid and child not none
+
 class Pattern(Tag):
-    child: List[Text | WildCard | PatStar]
+    # child: List[Union[Text, WildCard, PatStar]]
+    child: PatternT 
+    # child: List[Any]
+    # not empty list
 
 class Subpat(Tag):
-    child: List[Li]
+    child: List[PatLi]
 
 class Template(Tag):
-    child: List[Any] | Random
+    child: List[TemLi]
+    # not empty list
 
 #-------------------#
 
 class Case(Tag):
-    following: Any
+    id: Optional[str]
+    follow: Optional[Follow]
     pattern: Pattern
-    subpat: Subpat| None
+    subpat: Optional[Subpat]
     template: Template
+
+#--------------------#
+RuleT = List[Union[dict[str, Any], str]]
+class RuleCase(BaseModel):
+    case: Case
+    follow: Optional[List[RuleT]]
+    pattern: RuleT
+    subpat: Optional[List[RuleT]]

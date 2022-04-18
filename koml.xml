@@ -3,17 +3,18 @@
 <koml>
   <case>
     <pattern>안녕</pattern>
-    <subpat>
-      <li>하이</li>
-    </subpat>
-    <template>안녕~~~</template>
+    <subpat>하이</subpat>
+    <template>
+      <li>안녕~~~</li>
+      <li>반가워!</li>
+    </template>
   </case>
 
   <case>
     <pattern>넌 이름_s 뭐야?</pattern>
     <subpat>
       <li>이름_s 뭐야?</li>
-      <li>너_ 이름_o 뭐야?</li>
+      <li>너_ 이름_s 뭐야?</li>
       <li>너_ 이름_o 알려줄래?</li>
       <li>너_ 이름_o 알려줘</li>
       <li>이름_o 알려줄래?</li>
@@ -21,17 +22,17 @@
     <template>내 이름은 <bot get='name'/>야.</template>
   </case>
 
-  <case>
-    <pattern>너_s <star set='like'/>_ 좋아해?</pattern>
+  <case id='like_1'>
+    <pattern>너_a <star set='like'/>_ 좋아해?</pattern>
     <subpat>
       <li><star/>_ 좋아해?</li>
       <li><star/>_ 좋아?</li>
     </subpat>
-    <template id='like_1'>응ㅋㅋ 좋아하지</template>
+    <template>응ㅋㅋ 좋아하지</template>
   </case>
 
   <case>
-    <follow tid='like_1'/>
+    <follow cid='like_1'>* 좋아하지</follow>
     <pattern>왜?</pattern>
     <subpat>
       <li>왜 좋아해?</li>

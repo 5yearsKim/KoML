@@ -53,13 +53,20 @@ class TagStack:
         self.stack = self.stack[:tag_idx] + [*resolved]
         self.tag_dict[tag].pop()
         self.tag_history.pop()
+    
+    def get_closing_tag(self):
+        if self.tag_history == []:
+            return None
+        return self.tag_history[-1]
+
 
 class KomlHandler(xml.sax.ContentHandler):
     _BEGIN = 0
     _INSIDE_CASE=3
-    _INSIDE_PATTERN = 4
-    _INSIDE_SUBPAT = 5
-    _INSIDE_TEMPLATE = 6
+    _INSIDE_FOLLOW = 4
+    _INSIDE_PATTERN = 5 
+    _INSIDE_SUBPAT = 6 
+    _INSIDE_TEMPLATE = 7
     def __init__(self):
         self.case_stack = TagStack()
         self.state = self._BEGIN
@@ -67,7 +74,33 @@ class KomlHandler(xml.sax.ContentHandler):
         self.cases = []
 
     def startElement(self, tag, attributes):
+        if self.state == self._BEGIN:
+            allowed = ['koml', 'case']
+        elif self.state == self._INSIDE_CASE:
+            allowed = ['follow', 'pattern', 'subpat', 'template']
+        elif self.state == self._INSIDE_FOLLOW:
+            allowed = ['li']
+        elif self.state == self._INSIDE_PATTERN:
+            allowed = ['star']
+        elif self.state == self._INSIDE_SUBPAT:
+            allowed = ['li', 'star']
+        elif self.state == self._INSIDE_TEMPLATE:
+            allowed = ['li', 'bot', 'user', 'star']
+        if tag not in allowed:
+            raise KomlParserError(f'tag {tag} is not allowed in this scope')
+
         self._start_element(tag, attributes)
+
+        if tag == 'case':
+            self.state = self._INSIDE_CASE
+        elif tag == 'follow':
+            self.state = self._INSIDE_FOLLOW
+        elif tag == 'pattern':
+            self.state = self._INSIDE_PATTERN
+        elif tag == 'subpat':
+            self.state = self._INSIDE_SUBPAT
+        elif tag == 'template':
+            self.state = self._INSIDE_TEMPLATE
     
     def _start_element(self, tag, attributes):
         if tag == 'koml':
@@ -78,47 +111,48 @@ class KomlHandler(xml.sax.ContentHandler):
         else:
             self.case_stack.push_tag(tag, attributes)
 
-        if tag == 'case':
-            self.state = self._INSIDE_CASE
-        elif tag == 'pattern':
-            self.state = self._INSIDE_PATTERN
-        elif tag == 'subpat':
-            self.state = self._INSIDE_SUBPAT
-        elif tag == 'template':
-            self.state = self._INSIDE_TEMPLATE
-
 
     def endElement(self, tag):
-        self._end_element(tag)
-
-    def _end_element(self, tag):
         if tag == 'koml':
             pass
         elif tag == 'case':
             case = Case(**self.case_item)
             self.cases.append(case)
         else:
-            node, attribute = self.case_stack.get_node(tag)
-            resolved = self._process_node(tag, node, attribute)
-            self.case_stack.resolve(tag, resolved)
-            # print('tag', tag)
-            if self.case_stack.is_resolved():
-                if tag == 'pattern':
-                    self.case_item['pattern'] = Pattern(child=self.case_stack.stack)
-                elif tag == 'subpat':
-                    self.case_item['subpat'] = Subpat(child=self.case_stack.stack)
-                elif tag == 'template':
-                    self.case_item['template'] = Template(child=self.case_stack.stack)
-                self.case_stack.refresh()
+            closing_tag = self.case_stack.get_closing_tag()
+            if  closing_tag!= tag:
+                raise KomlParserError(f'tag {closing_tag} should be closed before {tag}')
+
+            self._end_element(tag)
 
         if tag == 'case':
             self.state = self._BEGIN
+        elif tag == 'follow':
+            self.state = self._INSIDE_CASE
         elif tag == 'pattern':
             self.state = self._INSIDE_CASE
         elif tag == 'subpat':
             self.state = self._INSIDE_CASE
         elif tag == 'template':
             self.state = self._INSIDE_CASE
+
+    # process tag except [koml, case]
+    def _end_element(self, tag): 
+        node, attribute = self.case_stack.get_node(tag)
+        resolved = self._process_node(tag, node, attribute)
+        self.case_stack.resolve(tag, resolved)
+        # print('tag', tag)
+        if self.case_stack.is_resolved():
+            if tag == 'follow':
+                self.case_item['follow'] = Follow(child=self.case_stack.stack, **attribute)
+            elif tag == 'pattern':
+                self.case_item['pattern'] = Pattern(child=self.case_stack.stack, **attribute)
+            elif tag == 'subpat':
+                self.case_item['subpat'] = Subpat(child=self.case_stack.stack, **attribute)
+            elif tag == 'template':
+                self.case_item['template'] = Template(child=self.case_stack.stack, **attribute)
+            self.case_stack.refresh()
+
 
     def _process_pattern(self, node):
         holder = []
@@ -130,7 +164,6 @@ class KomlHandler(xml.sax.ContentHandler):
                     if is_wc:
                         holder.append(WildCard(val=word))
                     else:
-                        print('word', word)
                         holder.append(Text(val=word))
             elif isinstance(item, PatStar):
                 item.idx = patstar_cnt
@@ -139,28 +172,56 @@ class KomlHandler(xml.sax.ContentHandler):
             else:
                 holder.append(item)
         return holder
+    
+    def _process_template(self, node):
+        holder = []
+        for item in node:
+            if isinstance(item, str):
+                words, is_wcs = split_wildcards(item, WILDCARDS)
+                for word, is_wc in zip(words, is_wcs):
+                    if is_wc:
+                        holder.append(WildCard(val=word))
+                    else:
+                        holder.append(Text(val=word))
+            else:
+                holder.append(item)
+        return holder
+
 
     def _process_node(self, tag, node, attribute):
         if tag == 'pattern':
             pattern = self._process_pattern(node)
             return pattern # pat
-        elif tag == 'subpat':
-            return node # [li<pat>, li<pat> ...]
+        elif tag == 'subpat' or tag == 'follow': # [Li] or pattern
+            assert len(node) > 0, f'{tag} should have more than 1 Li element'
+            if isinstance(node[0], PatLi):
+                return node # [li<pat>, li<pat> ...]
+            else:
+                pattern = self._process_pattern(node)
+                item = PatLi(child=pattern) # no attr
+                return [item]
         elif tag == 'template':
-            return node
-        elif tag == 'star' and self.state == self._INSIDE_PATTERN: 
-            item = PatStar(**attribute)
-            return [item]
-        elif tag == 'star':
+            assert len(node) > 0, f'{tag} should have more than 1 Li element'
+            if isinstance(node[0], TemLi):
+                return node # [li<tem>, li<tem> ...]
+            else:
+                template = self._process_template(node)
+                item = TemLi(child=template) # no attr
+                return [item]
+        elif tag == 'star' and self.state == self._INSIDE_TEMPLATE:
             item = Star(**attribute)
             return [item]
+        elif tag == 'star': 
+            item = PatStar(**attribute)
+            return [item]
         elif tag == 'li':
-            if self.state == self._INSIDE_SUBPAT:
+            if self.state in [self._INSIDE_FOLLOW , self._INSIDE_SUBPAT]:
                 pattern = self._process_pattern(node)
-                item = Li(child=pattern, **attribute)
-                return [item] 
+                item = PatLi(child=pattern, **attribute)
+                return [item]
             elif self.state == self._INSIDE_TEMPLATE:
-                item = Li(child=node, **attribute)
+                template = self._process_template(node)
+                item = TemLi(child=template, **attribute)
                 return [item]
             else:
                 raise KomlParserError('<li> tag not allowed')
@@ -170,7 +231,8 @@ class KomlHandler(xml.sax.ContentHandler):
         elif tag == 'bot':
             item = Bot(child=node, **attribute)
             return [item]
-        return ['resolved']
+        else:
+            raise KomlParserError(f'tag {tag} not allowed')
 
 
     def characters(self, content):

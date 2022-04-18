@@ -17,4 +17,6 @@ class Kernel:
 
             for case in handler.cases:
                 print(case)
+                print('----')
+    
 
