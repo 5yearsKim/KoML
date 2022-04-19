@@ -13,4 +13,6 @@ if __name__ == '__main__':
     from glob import glob
     kernel = Kernel()
     files = glob('koml.xml')
+    # kernel.converse()
+    # kernel.remember('brain.pickle')
     kernel.learn(files)

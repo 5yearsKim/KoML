@@ -11,6 +11,12 @@
   </case>
 
   <case>
+    <pattern>너는 <star/>_s! 좋아 아님 <star/>_s! 좋아?</pattern>
+    <subpat><star idx='2'/>랑 <star idx='1'/> 중에 뭐가 * 좋아?</subpat>
+    <template>둘 다 좋아! </template>
+  </case>
+
+  <case>
     <pattern>넌 이름_s 뭐야?</pattern>
     <subpat>
       <li>이름_s 뭐야?</li>
@@ -23,10 +29,10 @@
   </case>
 
   <case id='like_1'>
-    <pattern>너_a <star set='like'/>_ 좋아해?</pattern>
+    <pattern>너_x <star set='like'/> 좋아해? </pattern>
     <subpat>
-      <li><star/>_ 좋아해?</li>
-      <li><star/>_ 좋아?</li>
+      <li><star/> 좋아해?</li>
+      <li><star/> 좋아?</li>
     </subpat>
     <template>응ㅋㅋ 좋아하지</template>
   </case>

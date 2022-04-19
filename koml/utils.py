@@ -33,8 +33,9 @@ def split_wildcards(sent, wildcards):
         
 
 if  __name__ == '__main__':
-    wcs = ['ove', 've']
-    sent = 'oveiovesssove'
+    from config import WILDCARDS
+    wcs = WILDCARDS 
+    sent = '너_x 나 좋아해>'
     result = split_wildcards(sent, wcs)
     print(result)
     

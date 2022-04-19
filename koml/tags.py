@@ -11,6 +11,7 @@ class Text(Tag):
 
 class WildCard(Tag):
     val: str
+    optional: bool = True
     # allow value --
 
 class PatStar(Tag):
@@ -38,16 +39,19 @@ class Bot(Tag):
     set: Optional[str]
     get: Optional[str]
 
-# PatternT = List[Union[ PatStar, WildCard, Text]]
-PatternT = List[Any]
-# TemplateT = List[Union[User, Bot, WildCard, Text, Star, ]]
-TemplateT = List[Any]
+PatternT = List[Union[WildCard, Text, PatStar]]
+TemplateT = List[Union[WildCard, Text, User, Bot, Star]]
 
 class PatLi(Li):
     child: PatternT 
+    class Config:
+        smart_union = True
+
 
 class TemLi(Li):
     child: TemplateT 
+    class Config:
+        smart_union = True
 #-----------------#
 
 class Follow(Tag):
@@ -56,9 +60,9 @@ class Follow(Tag):
     # cid and child not none
 
 class Pattern(Tag):
-    # child: List[Union[Text, WildCard, PatStar]]
     child: PatternT 
-    # child: List[Any]
+    class Config:
+        smart_union = True
     # not empty list
 
 class Subpat(Tag):
@@ -81,6 +85,6 @@ class Case(Tag):
 RuleT = List[Union[dict[str, Any], str]]
 class RuleCase(BaseModel):
     case: Case
-    follow: Optional[List[RuleT]]
+    follow: List[RuleT]
     pattern: RuleT
-    subpat: Optional[List[RuleT]]
+    subpat: List[RuleT]
