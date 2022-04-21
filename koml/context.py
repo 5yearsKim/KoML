@@ -37,7 +37,6 @@ class Context:
     def star(self):
         return self._memory.star
 
-
     def load(self, memory: Memory):
         self._memory = memory
 
@@ -53,6 +52,33 @@ class Context:
     def push_history(self, question:str, answer:str):
         chat = Chat(question=question, answer=answer)
         self._memory.history.insert(0, chat)
+
+    def set_star(self, name :str, val :str):
+        self._memory.star[name] = val
+    
+    def get_star(self, name :str):
+        try:
+            return self._memory.star[name]
+        except:
+            return 'undefined'
+    
+    def set_user(self, name :str, val :str):
+        self._memory.user[name] = val
+
+    def get_user(self, name :str):
+        try:
+            return self._memory.user[name]
+        except:
+            return 'undefined'
+
+    def set_bot(self, name :str, val :str):
+        self._memory.bot[name] = val
+
+    def get_user(self, name :str):
+        try:
+            return self._memory.bot[name]
+        except:
+            return 'undefined'
 
 
 if __name__ == '__main__':

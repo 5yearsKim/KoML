@@ -1,66 +1,15 @@
 import xml
 from xml.sax.handler import ContentHandler
 from xml.sax.xmlreader import Locator
+
 from .utils import split_wildcards
 from .config import *
 from .tags import *
+from .parser_utils import TagStack
+from pydantic import ValidationError
 
-class KomlParserError(Exception):
+class KomlCheckError(Exception):
     pass
-
-class PatternCheckError(Exception):
-    pass
-
-class TagStack:
-    def __init__(self):
-        self.tag_dict = {}
-        self.stack = []
-        self.tag_history = [] # for assertion
-
-    def __len__(self):
-        return len(self.stack)
-
-    def is_resolved(self):
-        return self.stack != [] and self.tag_history == []
-
-    def refresh(self):
-        self.tag_dict.clear()
-        self.stack.clear()
-        self.tag_history.clear()
-    
-    def push_tag(self, tag, attributes):
-        item = (len(self.stack), tag, attributes)
-        if tag in self.tag_dict:
-            self.tag_dict[tag].append(item)
-        else:
-            self.tag_dict[tag] = [item]
-        self.stack.append(None)
-        self.tag_history.append(tag)
-
-    def push_content(self, content):
-        if self.tag_history == []: 
-            return
-        self.stack.append(content)
-
-    def get_node(self, tag):
-        tag_idx, _, attribute = self.tag_dict[tag][-1]
-        item = self.stack[tag_idx:]
-        if item[0] == None:
-            item.pop(0)
-        return item, attribute
-
-    def resolve(self, tag, resolved):
-        assert tag == self.tag_history[-1], f'tag {tag} is not the last node!'
-        tag_idx, _, _ = self.tag_dict[tag][-1]
-        self.stack = self.stack[:tag_idx] + [*resolved]
-        self.tag_dict[tag].pop()
-        self.tag_history.pop()
-    
-    def get_closing_tag(self):
-        if self.tag_history == []:
-            return None
-        return self.tag_history[-1]
-
 
 class KomlHandler(ContentHandler):
     _BEGIN = 0
@@ -69,21 +18,22 @@ class KomlHandler(ContentHandler):
     _INSIDE_PATTERN = 5 
     _INSIDE_SUBPAT = 6 
     _INSIDE_TEMPLATE = 7
+    _INSIDE_SWITCH = 8
 
     def __init__(self):
         self.case_stack = TagStack()
         self.state = self._BEGIN
         self.case_item = {}
         self.cases = []
-        self.locator = Locator()
-        self.setDocumentLocator(self.locator)
+        self.current_pattern = ''
+        # self.locator = Locator()
+        # self.setDocumentLocator(self.locator)
 
     def _location(self):
-        "Return a string describing the current location in the source file."
-        line = self.locator.getLineNumber()
-        column = self.locator.getColumnNumber()
+        # line = self.locator.getLineNumber()
+        # column = self.locator.getColumnNumber()
         # return f'(line {line}, column {column})' 
-        return ''
+        return f'@case({self.current_pattern})'
 
     def startElement(self, tag, attributes):
         if self.state == self._BEGIN:
@@ -97,14 +47,17 @@ class KomlHandler(ContentHandler):
         elif self.state == self._INSIDE_SUBPAT:
             allowed = ['li', 'star']
         elif self.state == self._INSIDE_TEMPLATE:
-            allowed = ['li', 'bot', 'user', 'star']
+            allowed = ['li', 'bot', 'user', 'star', 'func', 'switch']
+        elif self.state == self._INSIDE_SWITCH:
+            allowed = ['pivot', 'scase', 'default', 'star', 'bot', 'user', 'func']
         if tag not in allowed:
-            raise KomlParserError(f'tag {tag} is not allowed in this scope')
+            raise KomlCheckError(f'tag {tag} is not allowed in this scope' + self._location())
 
         self._start_element(tag, attributes)
 
         if tag == 'case':
             self.state = self._INSIDE_CASE
+            self.current_pattern = 'after @case - ' + self.current_pattern
         elif tag == 'follow':
             self.state = self._INSIDE_FOLLOW
         elif tag == 'pattern':
@@ -113,6 +66,8 @@ class KomlHandler(ContentHandler):
             self.state = self._INSIDE_SUBPAT
         elif tag == 'template':
             self.state = self._INSIDE_TEMPLATE
+        elif tag == 'switch':
+            self.state = self._INSIDE_SWITCH
     
     def _start_element(self, tag, attributes):
         if tag == 'koml':
@@ -128,15 +83,20 @@ class KomlHandler(ContentHandler):
         if tag == 'koml':
             pass
         elif tag == 'case':
-            case = Case(**self.case_item)
+            try:
+                case = Case(**self.case_item)
+            except ValidationError:
+                raise KomlCheckError('<case> check error.. make sure pattern-template is in case!' + self._location())
             self._check_case_valid(case)
             self.cases.append(case)
         else:
             closing_tag = self.case_stack.get_closing_tag()
             if  closing_tag!= tag:
-                raise KomlParserError(f'tag {closing_tag} should be closed before {tag}', self._location())
-
-            self._end_element(tag)
+                raise KomlCheckError(f'tag {closing_tag} should be closed before {tag}' + self._location())
+            try:
+                self._end_element(tag)
+            except ValidationError:
+                raise KomlCheckError('tag <{tag}> check error.. please check all required attribute is given.' + self._location())
 
         if tag == 'case':
             self.state = self._BEGIN
@@ -148,6 +108,8 @@ class KomlHandler(ContentHandler):
             self.state = self._INSIDE_CASE
         elif tag == 'template':
             self.state = self._INSIDE_CASE
+        elif tag == 'switch':
+            self.state = self._INSIDE_TEMPLATE
 
     # process tag except [koml, case]
     def _end_element(self, tag): 
@@ -167,31 +129,17 @@ class KomlHandler(ContentHandler):
             self.case_stack.refresh()
 
 
-    def _process_pattern(self, node):
+    def _process_child(self, node, mode='default'):
         holder = []
         for item in node:
             if isinstance(item, str):
                 words, is_wcs = split_wildcards(item, WILDCARDS)
                 for word, is_wc in zip(words, is_wcs):
                     if is_wc:
-                        optional = '!' not in word
+                        if self.state in [self._INSIDE_TEMPLATE, self._INSIDE_SWITCH]:
+                            raise KomlCheckError(f'wildcard {word} not allowed in template section. Did you mean {word[:-1]}?' + self._location())
+                        optional = False if '!' in word else True
                         holder.append(WildCard(val=word, optional=optional))
-                    else:
-                        holder.append(Text(val=word))
-            elif isinstance(item, PatStar):
-                holder.append(item)
-            else:
-                holder.append(item)
-        return holder
-    
-    def _process_template(self, node):
-        holder = []
-        for item in node:
-            if isinstance(item, str):
-                words, is_wcs = split_wildcards(item, WILDCARDS)
-                for word, is_wc in zip(words, is_wcs):
-                    if is_wc:
-                        holder.append(WildCard(val=word))
                     else:
                         holder.append(Text(val=word))
             else:
@@ -201,53 +149,85 @@ class KomlHandler(ContentHandler):
 
     def _process_node(self, tag, node, attribute):
         if tag == 'pattern':
-            pattern = self._process_pattern(node)
+            pattern = self._process_child(node)
             return pattern # pat
         elif tag == 'subpat' or tag == 'follow': # [Li] or pattern
             assert len(node) > 0, f'{tag} should have more than 1 Li element'
             if isinstance(node[0], PatLi):
                 return node # [li<pat>, li<pat> ...]
             else:
-                pattern = self._process_pattern(node)
-                item = PatLi(child=pattern) # no attr
-                return [item]
+                pattern = self._process_child(node)
+                return [PatLi(child=pattern)] # no attr
         elif tag == 'template':
             assert len(node) > 0, f'{tag} should have more than 1 Li element'
+            if isinstance(node[0], Switch):
+                return node[0] # Switch returned alone
             if isinstance(node[0], TemLi):
                 return node # [li<tem>, li<tem> ...]
             else:
-                template = self._process_template(node)
-                item = TemLi(child=template) # no attr
-                return [item]
-        elif tag == 'star' and self.state == self._INSIDE_TEMPLATE:
-            item = Star(**attribute)
-            return [item]
+                template = self._process_child(node)
+                return [TemLi(child=template)] # no attr
+        elif tag == 'star' and self.state in [self._INSIDE_TEMPLATE, self._INSIDE_SWITCH]:
+            return [Star(**attribute)]
         elif tag == 'star': 
-            item = PatStar(**attribute)
-            return [item]
+            attr = {**attribute}
+            if 'pos' in attr and isinstance(attr['pos'], str):
+                attr['pos'] = [attr['pos']]
+            if 'npos' in attr and isinstance(attr['npos'], str):
+                attr['npos'] = [attr['npos']]
+            return [PatStar(**attr)]
         elif tag == 'li':
             if self.state in [self._INSIDE_FOLLOW , self._INSIDE_SUBPAT]:
-                pattern = self._process_pattern(node)
-                item = PatLi(child=pattern, **attribute)
-                return [item]
+                pattern = self._process_child(node)
+                return [PatLi(child=pattern, **attribute)]
             elif self.state == self._INSIDE_TEMPLATE:
-                template = self._process_template(node)
-                item = TemLi(child=template, **attribute)
-                return [item]
+                template = self._process_child(node)
+                return [TemLi(child=template, **attribute)]
             else:
-                raise KomlParserError(f'<li> tag not allowed', self._location())
+                raise KomlCheckError(f'<li> tag not allowed' + self._location())
         elif tag == 'user':
-            item = User(child=node, **attribute)
-            return [item]
+            user_child = self._process_child(node)
+            return [User(child=user_child, **attribute)]
         elif tag == 'bot':
-            item = Bot(child=node, **attribute)
-            return [item]
+            bot_child = self._process_child(node)
+            return [Bot(child=bot_child, **attribute)]
+        elif tag == 'arg':
+            arg = self._process_child(node)
+            return [Arg(child=arg, **attribute)]
+        elif tag == 'func':
+            assert all(isinstance(x, Arg) for x in node)
+            assert 'name' in attribute
+            return [Func(child=node, **attribute)]
+        elif tag == 'pivot':
+            pivot = self._process_child(node)
+            return [Pivot(child=pivot, **attribute)]
+        elif tag == 'scase':
+            scase = self._process_child(node)
+            return [Scase(child=scase, **attribute)]
+        elif tag == 'default':
+            default = self._process_child(node)
+            return [Default(child=default, **attribute)]
+        elif tag == 'switch':
+            pivot, scase, default = None, [], None
+            for el in node:
+                if isinstance(el, Pivot):
+                    pivot = el
+                elif isinstance(el, Default):
+                    default = el
+                elif isinstance(el, Scase):
+                    scase.append(el)
+                else:
+                    raise KomlCheckError(f'tag {tag} not allowed in switch' + self._location())
+            if not pivot or not default or scase == []:
+                raise KomlCheckError(f'pivot, scase, default are needed for switch' + self._location())
+            return [Switch(pivot=pivot, scase=scase, default=default)]
         else:
-            raise KomlParserError(f'tag {tag} not allowed', self._location())
-
+            raise KomlCheckError(f'tag {tag} not allowed' + self._location())
 
     def characters(self, content):
         self._characters(content)
+        if self.state == self._INSIDE_PATTERN:
+            self.current_pattern = content
     
     def _characters(self, content):
         if content == '\n' or content.isspace():
@@ -255,14 +235,23 @@ class KomlHandler(ContentHandler):
         self.case_stack.push_content(content)
 
     def _check_case_valid(self, case):
-        def _check_pattern_valid(pat_list):
+        def _check_pattern_valid(pat_list: PatternT):
             for i in range(len(pat_list) - 1):
                 a, b = pat_list[i], pat_list[i + 1]
-                if (isinstance(a, PatStar) or a.val == '*') and isinstance(b, WildCard) and '!' not in b.val:
-                    raise PatternCheckError(f'optional wildcard following Star or * is not allowed \n patern: {[a]} -> {[b]}', self._location())
+                if (isinstance(a, PatStar) or a.val == '*') and isinstance(b, WildCard) and b.optional:
+                    raise KomlCheckError(f'optional wildcard following Star or * is not allowed \n patern: {[a]} -> {[b]}' + self._location())
+                if (isinstance(a, PatStar) or a.val == '*') and (isinstance(b, PatStar) or b.val == '*'):
+                    raise KomlCheckError(f'(Star or *) following (Star or *) is not allowed \n patern: {[a]} -> {[b]}' + self._location())
+
+        def _check_template_valid(tem_list: TemplateT, patstar_cnt: int):
+            for tag in tem_list:
+                if isinstance(tag, Star):
+                    if tag.idx and tag.idx > patstar_cnt:
+                        raise KomlCheckError(f'idx of <star> in template can\'t exceed number of <star> in pattern' + self._location())
 
         pattern = case.pattern
         subpat = case.subpat
+        template = case.template
 
         # check pattern
         patstar_cnt = 0
@@ -283,12 +272,26 @@ class KomlHandler(ContentHandler):
                         substar_cnt += 1
                         if item.idx:
                             if item.idx <= 0 or item.idx > patstar_cnt:
-                                raise PatternCheckError(f'idx of star in subpat cannot exceed number of star in pattern \n {spat}')
+                                raise KomlCheckError(f'idx of star in subpat cannot exceed number of star in pattern \n {spat}' + self._location())
                             substar_idx[item.idx-1] = item.idx
                 if substar_cnt != patstar_cnt:
-                    raise PatternCheckError(f'star number should be same for pattern({patstar_cnt}) and subpat({substar_cnt}) \n subpat: {spat}', self._location())
+                    raise KomlCheckError(f'star number should be same for pattern({patstar_cnt}) and subpat({substar_cnt}) \n subpat: {spat}' + self._location())
                 if any(substar_idx) and None in substar_idx:
-                    raise PatternCheckError(f'idx should include all number 1 ~ {patstar_cnt} \n subpat:{spat}')
+                    raise KomlCheckError(f'idx should include all number 1 ~ {patstar_cnt} \n subpat:{spat}' + self._location)
+        
+        if isinstance(template.child, list): 
+            for temli in template.child:
+                _check_template_valid(temli.child, patstar_cnt)
+        
+        if isinstance(template.child, Switch):
+            scases = template.child.scase
+            default = template.child.default
+            for scase in scases:
+                _check_template_valid(scase.child, patstar_cnt)
+
+            _check_template_valid(default.child, patstar_cnt)
+
+
 
 def create_parser():
     parser = xml.sax.make_parser()

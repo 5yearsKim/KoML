@@ -11,9 +11,9 @@
   </case>
 
   <case>
-    <pattern>너는 <star/>_s! 좋아 아님 <star/>_s! 좋아?</pattern>
-    <subpat><star idx='2'/>랑 <star idx='1'/> 중에 뭐가 * 좋아?</subpat>
-    <template>둘 다 좋아! </template>
+    <pattern>너는 <star/>_s! 좋아 <star/>_s! 좋아_?</pattern>
+    <subpat><star idx='2' pos='NNG'/>랑 <star idx='1'/> 중에 뭐가 * 좋아?</subpat>
+    <template>둘 다 좋아!</template>
   </case>
 
   <case>
@@ -53,14 +53,28 @@
     <template>안녕 <user set='name'><star/></user>! 만나서 반가워ㅋㅋ</template>
   </case>
 
-  <!-- <case>
-    <pattern>너 내 <star set='tmp'/>_s 뭔지 알아?</pattern>
+  <case>
+    <pattern>너 내 <star set='tmp'/>_s! 뭔지 알아?</pattern>
     <subpat>
-      <li>내 <star/>_o 알아?</li>
+      <li>내 <star/> 알아?</li>
     </subpat>
-    <if>
+    <template>
+      <switch>
+        <pivot><star/></pivot>
+        <scase pivot='True'>알아</scase>
+        <scase pivot='False'>글쎄</scase>
+        <default>몰라</default>
+      </switch>
+    </template>
+  </case>
 
-    </if>
-    <template></template>
-  </case> -->
+  <case>
+    <pattern>넌 * 좋아해?</pattern>
+    <template>응 엄청 좋아해!</template>
+  </case>
+
+  <case>
+    <pattern>넌 똥 좋아해?</pattern>
+    <template>똥을 누가 좋아해ㅋㅋㅋ</template>
+  </case>
 </koml>
