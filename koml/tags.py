@@ -1,6 +1,5 @@
 from pydantic import BaseModel, Extra
 from typing import List, Any, Optional, Union
-from .config import WILDCARDS
 
 class Tag(BaseModel):
     child: Optional[List[Any]]
@@ -19,34 +18,35 @@ class WildCard(Tag):
 
 class PatStar(Tag):
     idx: Optional[int]
-    set: Optional[str]
     pos: Optional[List[str]]
     npos: Optional[List[str]]
     # idx > 0
 
 class Star(Tag):
     idx: Optional[int]
-    set: Optional[str]
-    get: Optional[str]
     # idx > 0
 
 #-------------tag with child----------------#
 class Li(Tag):
     pass
 
+class Think(Tag):
+    pass
 
-class User(Tag):
+class Memo(Tag):
     set: Optional[str]
     get: Optional[str]
     # child with get not allowed
 
-class Bot(Tag):
-    set: Optional[str]
-    get: Optional[str]
-    # child with get not allowed
+class Arg(Tag):
+    pass
+
+class Func(Tag):
+    name: str
+    child: List[Arg]
 
 PatternT = List[Union[WildCard, Text, PatStar]]
-TemplateT = List[Union[WildCard, Text, User, Bot, Star]]
+TemplateT = List[Union[WildCard, Text, Memo, Think, Star, Func]]
 
 class PatLi(Li):
     child: PatternT 
@@ -55,12 +55,6 @@ class PatLi(Li):
 class TemLi(Li):
     child: TemplateT 
 
-class Arg(Tag):
-    pass
-
-class Func(Tag):
-    name: str
-    child: List[Arg]
 
 class Pivot(Tag):
     child: List[Union[Text, Star]]
@@ -73,8 +67,7 @@ class Default(Tag):
     child: TemplateT
 
 
-#---------section tag --------#
-
+#--------- section tag --------#
 class Follow(Tag):
     cid: Optional[str]
     child: Optional[List[PatLi]]

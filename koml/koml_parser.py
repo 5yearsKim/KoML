@@ -47,9 +47,9 @@ class KomlHandler(ContentHandler):
         elif self.state == self._INSIDE_SUBPAT:
             allowed = ['li', 'star']
         elif self.state == self._INSIDE_TEMPLATE:
-            allowed = ['li', 'bot', 'user', 'star', 'func', 'switch']
+            allowed = ['li', 'star', 'memo', 'think', 'func', 'arg', 'switch']
         elif self.state == self._INSIDE_SWITCH:
-            allowed = ['pivot', 'scase', 'default', 'star', 'bot', 'user', 'func']
+            allowed = ['pivot', 'scase', 'default', 'star', 'memo' , 'think', 'func', 'arg']
         if tag not in allowed:
             raise KomlCheckError(f'tag {tag} is not allowed in this scope' + self._location())
 
@@ -96,7 +96,7 @@ class KomlHandler(ContentHandler):
             try:
                 self._end_element(tag)
             except ValidationError:
-                raise KomlCheckError('tag <{tag}> check error.. please check all required attribute is given.' + self._location())
+                raise KomlCheckError(f'tag <{tag}> check error.. please check all required attribute is given.' + self._location())
 
         if tag == 'case':
             self.state = self._BEGIN
@@ -136,9 +136,9 @@ class KomlHandler(ContentHandler):
                 words, is_wcs = split_wildcards(item, WILDCARDS)
                 for word, is_wc in zip(words, is_wcs):
                     if is_wc:
-                        if self.state in [self._INSIDE_TEMPLATE, self._INSIDE_SWITCH]:
-                            raise KomlCheckError(f'wildcard {word} not allowed in template section. Did you mean {word[:-1]}?' + self._location())
                         optional = False if '!' in word else True
+                        if optional == False and self.state in [self._INSIDE_TEMPLATE, self._INSIDE_SWITCH]:
+                            raise KomlCheckError(f'wildcard {word} not allowed in template section. Did you mean {word[:-1]}?' + self._location())
                         holder.append(WildCard(val=word, optional=optional))
                     else:
                         holder.append(Text(val=word))
@@ -185,12 +185,12 @@ class KomlHandler(ContentHandler):
                 return [TemLi(child=template, **attribute)]
             else:
                 raise KomlCheckError(f'<li> tag not allowed' + self._location())
-        elif tag == 'user':
-            user_child = self._process_child(node)
-            return [User(child=user_child, **attribute)]
-        elif tag == 'bot':
-            bot_child = self._process_child(node)
-            return [Bot(child=bot_child, **attribute)]
+        elif tag == 'think':
+            think = self._process_child(node)
+            return [Think(child=think, **attribute)]
+        elif tag == 'memo':
+            memo_child = self._process_child(node)
+            return [Memo(child=memo_child, **attribute)]
         elif tag == 'arg':
             arg = self._process_child(node)
             return [Arg(child=arg, **attribute)]
@@ -259,6 +259,8 @@ class KomlHandler(ContentHandler):
         for item in pattern.child:
             if isinstance(item, PatStar):
                 patstar_cnt += 1
+                if item.idx:
+                    raise KomlCheckError('idx of <star> in pattern not allowed' + self._location())
         
         # check subpat
         if subpat:

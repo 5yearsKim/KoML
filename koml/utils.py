@@ -27,7 +27,9 @@ def split_wildcards(sent, wildcards):
         is_wc.append(False)
     return holder, is_wc
 
-
+def preprocess_sentence():
+    # todo: word_sub, delete front back, korean sentence
+    pass
 
 
         

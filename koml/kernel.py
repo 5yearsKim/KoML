@@ -17,7 +17,6 @@ class Kernel:
             self.funcs = CustomFunction()
         else:
             self.funcs = custom_func
-
     
     def learn(self, files):
         for file in files:
@@ -55,7 +54,7 @@ class Kernel:
     def _resolve(self, case: Case, args: Tuple[str], context: Context):
         template = case.template
         if isinstance(template.child, Switch):
-            return 'switch need to be resolved'
+            return 'switch need to be resolved' # TODO
         elif isinstance(template.child, list):
             temli = random.choice(template.child)
             return self._resolve_template(temli.child, args, context)
@@ -65,12 +64,13 @@ class Kernel:
     def _resolve_template(self, template: TemplateT, args: Tuple[str], context: Context):
         cnt_list = []
         def resolve_helper(tag):
+            if isinstance(tag, str):
+                return tag
             if isinstance(tag, list):
                 holder = []
                 for t in tag:
                     resolved = resolve_helper(t)
                     holder.append(resolved)
-
                 sent = ''
                 for t in holder:
                     if sent and isinstance(t, WildCard):
@@ -80,33 +80,47 @@ class Kernel:
                     else:
                         raise KomlKernelError(f'tag {t} maybe not resolved?')
                 return sent
-            if tag.child:
-                tag.child = resolve_helper(tag.child)
             if isinstance(tag, Text):
                 return tag.val
             if isinstance(tag, WildCard):
                 return tag # do not resolve - resolve in higher level
+
+            # exception: handle specially
+            if isinstance(tag, Func):
+                fargs = []
+                for t in tag.child:
+                    assert isinstance(t == Arg)
+                    farg = resolve_helper(t)
+                    fargs.append(farg)
+                f = self.funcs[tag.name]
+                if not f:
+                    return 'undefined'
+                try:
+                    return f(*fargs, context=context)
+                except Exception as e:
+                    raise KomlKernelError(f'custom function {tag.name} with args {fargs} raised error: {e}')
+            # has child from below
+            if tag.child:
+                tag.child = resolve_helper(tag.child)
+
             if isinstance(tag, Star):
-                if tag.get:
-                    return context.get_star(tag.get)
                 if tag.idx:
                     assert 0 < tag.idx <= len(args)
                     return args[tag.idx - 1]
-                if tag.set:
-                    context.set_star(tag.child)
-                    return tag.child
-                cnt_list.append('*') # to make arg_idx
-                arg_idx = min(len(cnt_list) - 1, len(args - 1) )
-                return args[arg_idx]
-            if isinstance(tag, User):
-                return ('not implemented')
-            if isinstance(tag, Bot):
-                return ('not implemented')
-            if isinstance(tag, Func):
-                return ('not implemented')
+                else:
+                    cnt_list.append('*') # to make arg_idx
+                    arg_idx = min(len(cnt_list) - 1, len(args) - 1 )
+                    return args[arg_idx]
+            if isinstance(tag, Memo):
+                if tag.get:
+                    return context.get_memo(tag.get)
+                if tag.set and tag.child:
+                    context.set_memo(tag.set, tag.child)
+                return tag.child
+            if isinstance(tag, Think):
+                return ''
             if isinstance(tag, Arg):
-                return ('not implemented')
-                
+                return tag.child
             raise KomlKernelError(f'tag {tag} ({type(tag)}) not supported')
         return resolve_helper(template)
 

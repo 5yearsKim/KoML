@@ -25,16 +25,16 @@
       <li>너_ 이름_o 알려줘</li>
       <li>이름_o 알려줄래?</li>
     </subpat>
-    <template>내 이름은 <bot get='name'/>야.</template>
+    <template>내 이름은 <memo get='botname'/>야.</template>
   </case>
 
   <case id='like_1'>
-    <pattern>너_x <star set='like'/> 좋아해? </pattern>
+    <pattern>너_x <star/> 좋아해? </pattern>
     <subpat>
       <li><star/> 좋아해?</li>
       <li><star/> 좋아?</li>
     </subpat>
-    <template>응ㅋㅋ 좋아하지</template>
+    <template><think><memo set='like'><star/></memo></think> 응ㅋㅋ 좋아하지</template>
   </case>
 
   <case>
@@ -45,16 +45,16 @@
       <li>이유가 뭐야?</li>
       <li>이유는?</li>
     </subpat>
-    <template>음.. <star get='like'/> 그냥 생각하면 기분이 좋아져ㅋㅋ</template>
+    <template>음.. 그냥 <memo get='like'/>_o 생각하면 기분이 좋아져ㅋㅋ</template>
   </case>
 
   <case>
     <pattern>내 이름은 <star/></pattern>
-    <template>안녕 <user set='name'><star/></user>! 만나서 반가워ㅋㅋ</template>
+    <template>안녕 <memo set='username'><star/></memo>! 만나서 반가워ㅋㅋ</template>
   </case>
 
   <case>
-    <pattern>너 내 <star set='tmp'/>_s! 뭔지 알아?</pattern>
+    <pattern>너 내 <star/>_s! 뭔지 알아?</pattern>
     <subpat>
       <li>내 <star/> 알아?</li>
     </subpat>
@@ -76,5 +76,17 @@
   <case>
     <pattern>넌 똥 좋아해?</pattern>
     <template>똥을 누가 좋아해ㅋㅋㅋ</template>
+  </case>
+
+  <case>
+    <pattern>지금 몇시야_?</pattern>
+    <subpat>
+      <li>지금 몇시인지 알아?</li>
+      <li>지금 몇신지 알아?</li>
+      <li>지금 몇시인지 알려줘</li>
+      <li>지금 몇시게</li>
+    </subpat>
+    <template>음.. 지금 <func name='show_date'/>!</template>
+    <!-- <template>음.. 지금 !</template> -->
   </case>
 </koml>

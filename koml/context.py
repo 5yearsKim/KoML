@@ -8,14 +8,12 @@ class Chat(BaseModel):
 
 class Memory(BaseModel):
     history: List[Chat]
-    user: Dict[str, str]
-    bot: Dict[str, str]
-    star: Dict[str, str]
+    memo: Dict[str, str]
 
 
 class Context:
     def __init__(self):
-        self._memory:Memory = Memory(history=[], user={}, bot={}, star={})
+        self._memory:Memory = Memory(history=[], memo={})
 
     @property
     def memory(self):
@@ -26,17 +24,9 @@ class Context:
         return self._memory.history
 
     @property
-    def user(self):
-        return self._memory.user
+    def memo(self):
+        return self._memory.memo
     
-    @property
-    def bot(self):
-        return self._memory.bot
-    
-    @property
-    def star(self):
-        return self._memory.star
-
     def load(self, memory: Memory):
         self._memory = memory
 
@@ -48,38 +38,20 @@ class Context:
     def export(self):
         js = self._memory.dict()
         print(js)
+        # todo: need to implement
 
     def push_history(self, question:str, answer:str):
         chat = Chat(question=question, answer=answer)
         self._memory.history.insert(0, chat)
 
-    def set_star(self, name :str, val :str):
-        self._memory.star[name] = val
+    def set_memo(self, name :str, val :str):
+        self._memory.memo[name] = val
     
-    def get_star(self, name :str):
+    def get_memo(self, name :str):
         try:
-            return self._memory.star[name]
+            return self._memory.memo[name]
         except:
             return 'undefined'
-    
-    def set_user(self, name :str, val :str):
-        self._memory.user[name] = val
-
-    def get_user(self, name :str):
-        try:
-            return self._memory.user[name]
-        except:
-            return 'undefined'
-
-    def set_bot(self, name :str, val :str):
-        self._memory.bot[name] = val
-
-    def get_user(self, name :str):
-        try:
-            return self._memory.bot[name]
-        except:
-            return 'undefined'
-
 
 if __name__ == '__main__':
     ctx = Context()

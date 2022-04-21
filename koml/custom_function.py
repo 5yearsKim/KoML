@@ -9,7 +9,16 @@ class CustomFunction:
     def __init__(self, funcs: Dict[str, Callable]={}):
         self._funcs = {}
         self.update_funcs(funcs)
-    
+
+    def has_key(self, k):
+        return k in self._funcs
+
+    def __getitem__(self, key):
+        try:
+            return self._funcs[key]
+        except:
+            return None
+
     def update_funcs(self, funcs: Dict[str, Callable]):
         self.check_funcs_valid(funcs)
         self._funcs.update(funcs)

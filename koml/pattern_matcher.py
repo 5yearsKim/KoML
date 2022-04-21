@@ -149,15 +149,15 @@ class PatternMatcher:
             return '*'
         if wc == '_?':
             return {'surface': '?', 'optional': True}
-        if wc == '_s' or '_s!':
+        if wc in ['_s' , '_s!']:
             pos = 'JKS'
-        elif wc == '_c' or '_c!':
+        elif wc in ['_c' , '_c!']:
             pos = 'JKC'
-        elif wc == '_x' or '_x!':
+        elif wc in ['_x' , '_x!']:
             pos = 'JX'
-        elif wc == '_o' or '_o!':
+        elif wc in ['_o' , '_o!']:
             pos = 'JKO'
-        elif wc == '_' or '_!':
+        elif wc in ['_' , '_!']:
             pos = 'J'
         elif wc == '_i':
             raise PatternMatcherError('wildcard _i is not allowed')
