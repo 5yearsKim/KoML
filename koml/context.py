@@ -1,8 +1,9 @@
-from typing import Dict, List
+from typing import Dict, List, Optional
 from pydantic import BaseModel
 import json
 
 class Chat(BaseModel):
+    cid: Optional[str]
     question: str
     answer: str
 
@@ -11,9 +12,12 @@ class Memory(BaseModel):
     memo: Dict[str, str]
 
 
+
 class Context:
+    _WRITE_MEMO = 0
     def __init__(self):
         self._memory:Memory = Memory(history=[], memo={})
+        self._action = []
 
     @property
     def memory(self):
@@ -38,20 +42,21 @@ class Context:
     def export(self):
         js = self._memory.dict()
         print(js)
-        # todo: need to implement
+        # TODO: need to implement
 
-    def push_history(self, question:str, answer:str):
-        chat = Chat(question=question, answer=answer)
+    def push_history(self, question:str, answer:str, cid :Optional[str]=None):
+        chat = Chat(question=question, answer=answer, cid=cid)
         self._memory.history.insert(0, chat)
 
     def set_memo(self, name :str, val :str):
         self._memory.memo[name] = val
+        self._action.append((self._WRITE_MEMO, {name: val}))
     
     def get_memo(self, name :str):
         try:
             return self._memory.memo[name]
         except:
-            return 'undefined'
+            return f'memo.{name}'
 
 if __name__ == '__main__':
     ctx = Context()

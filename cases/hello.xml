@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE xml>
+<koml>
+  <case>
+    <pattern>안녕</pattern>
+    <subpat>하이</subpat>
+    <template>
+      <random>
+        <li>안녕~~~</li>
+        <li>반가워!</li>
+      </random>
+    </template>
+  </case>
+</koml>

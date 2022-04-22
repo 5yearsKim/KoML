@@ -1,3 +1,6 @@
+from korean_rule_helper import KoreanSentence
+from .word_sub import DEFAULT_SUB
+
 def split_wildcards(sent, wildcards):
     wildcards.sort(key=len, reverse=True)
     is_wc = []
@@ -27,11 +30,24 @@ def split_wildcards(sent, wildcards):
         is_wc.append(False)
     return holder, is_wc
 
-def preprocess_sentence():
-    # todo: word_sub, delete front back, korean sentence
-    pass
 
+def preprocess(sent: str):
+    if not sent:
+        return ''
+    while len(sent) > 1 and sent[-1] in 'ㅋㅎ.!><^_,~*':
+        sent = sent[:-1]
+    return sent
 
+def substitute_word(sent: KoreanSentence):
+    for rule, expr in DEFAULT_SUB:
+        sent = sent.replace(rule, expr)
+    return sent
+
+def make_sentence(sent: str):
+    sent = preprocess(sent)
+    sent = KoreanSentence(sent)
+    sent = substitute_word(sent)
+    return sent
         
 
 if  __name__ == '__main__':

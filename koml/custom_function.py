@@ -19,6 +19,9 @@ class CustomFunction:
         except:
             return None
 
+    def update(self, *args, **kwargs):
+        return self._funcs.update(*args, **kwargs)
+
     def update_funcs(self, funcs: Dict[str, Callable]):
         self.check_funcs_valid(funcs)
         self._funcs.update(funcs)

@@ -1,96 +1,105 @@
 from pydantic import BaseModel, Extra
 from typing import List, Any, Optional, Union
 
+#----------base setup ---------#
 class Tag(BaseModel):
-    child: Optional[List[Any]]
     class Config:
         smart_union = True
         extra = Extra.forbid 
-#----------single tag----------#
 
-class Text(Tag):
+class Leaf(Tag):
+    pass
+
+class Node(Tag):
+    child: Any
+
+#----------leaf tag----------#
+
+class Text(Leaf):
     val: str
 
-class WildCard(Tag):
+class WildCard(Leaf):
     val: str
     optional: bool = True
     # allow value --
 
-class PatStar(Tag):
+class PatStar(Leaf):
     idx: Optional[int]
     pos: Optional[List[str]]
     npos: Optional[List[str]]
     # idx > 0
 
-class Star(Tag):
+class Star(Leaf):
     idx: Optional[int]
     # idx > 0
 
 #-------------tag with child----------------#
-class Li(Tag):
+class Think(Node):
     pass
 
-class Think(Tag):
-    pass
-
-class Memo(Tag):
+class Memo(Node):
     set: Optional[str]
     get: Optional[str]
     # child with get not allowed
 
-class Arg(Tag):
+class Arg(Node):
     pass
 
-class Func(Tag):
+class Func(Node):
     name: str
     child: List[Arg]
 
 PatternT = List[Union[WildCard, Text, PatStar]]
 TemplateT = List[Union[WildCard, Text, Memo, Think, Star, Func]]
 
-class PatLi(Li):
+class PatLi(Node):
     child: PatternT 
 
 
-class TemLi(Li):
+class TemLi(Node):
     child: TemplateT 
 
 
-class Pivot(Tag):
-    child: List[Union[Text, Star]]
+class Pivot(Node):
+    child: List[Union[Text, Star, Func]]
 
-class Scase(Tag):
-    pivot:  str
-    child: TemplateT
-
-class Default(Tag):
-    child: TemplateT
 
 
 #--------- section tag --------#
-class Follow(Tag):
+class Follow(Node):
     cid: Optional[str]
     child: Optional[List[PatLi]]
     # cid and child not none
 
-class Pattern(Tag):
+class Pattern(Node):
     child: PatternT 
     # not empty list
 
-class Subpat(Tag):
+class Subpat(Node):
     child: List[PatLi]
 
-class Switch(Tag):
+class Random(Node):
+    child: List[TemLi]
+
+class Scase(Node):
+    pivot:  str
+    child: Union[TemLi, Random] 
+
+class Default(Node):
+    child: Union[TemLi, Random]
+
+class Switch(Node):
     pivot: Pivot
     scase: List[Scase]
     default: Default
 
-class Template(Tag):
-    child: Union[List[TemLi], Switch]
+# child of template is not list type!
+class Template(Node):
+    child: Union[TemLi, Switch, Random]
     # temli should not be empty
 #--------- case ----------#
 
-class Case(Tag):
+class Case(BaseModel):
     id: Optional[str]
     follow: Optional[Follow]
     pattern: Pattern

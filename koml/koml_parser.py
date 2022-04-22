@@ -1,3 +1,4 @@
+from logging import raiseExceptions
 import xml
 from xml.sax.handler import ContentHandler
 from xml.sax.xmlreader import Locator
@@ -47,9 +48,9 @@ class KomlHandler(ContentHandler):
         elif self.state == self._INSIDE_SUBPAT:
             allowed = ['li', 'star']
         elif self.state == self._INSIDE_TEMPLATE:
-            allowed = ['li', 'star', 'memo', 'think', 'func', 'arg', 'switch']
+            allowed = ['random', 'li', 'star', 'memo', 'think', 'func', 'arg', 'switch']
         elif self.state == self._INSIDE_SWITCH:
-            allowed = ['pivot', 'scase', 'default', 'star', 'memo' , 'think', 'func', 'arg']
+            allowed = ['pivot', 'scase', 'default', 'random', 'li', 'star', 'memo' , 'think', 'func', 'arg']
         if tag not in allowed:
             raise KomlCheckError(f'tag {tag} is not allowed in this scope' + self._location())
 
@@ -57,7 +58,7 @@ class KomlHandler(ContentHandler):
 
         if tag == 'case':
             self.state = self._INSIDE_CASE
-            self.current_pattern = 'after @case - ' + self.current_pattern
+            self.current_pattern = 'NEXT TO @case - ' + self.current_pattern
         elif tag == 'follow':
             self.state = self._INSIDE_FOLLOW
         elif tag == 'pattern':
@@ -71,7 +72,7 @@ class KomlHandler(ContentHandler):
     
     def _start_element(self, tag, attributes):
         if tag == 'koml':
-            print(tag)
+            pass
         elif tag == 'case':
             self.case_stack.refresh()
             self.case_item = {k: v for k, v in attributes.items()}
@@ -124,11 +125,16 @@ class KomlHandler(ContentHandler):
                 self.case_item['pattern'] = Pattern(child=self.case_stack.stack, **attribute)
             elif tag == 'subpat':
                 self.case_item['subpat'] = Subpat(child=self.case_stack.stack, **attribute)
+            # only template child is not a list type! 
             elif tag == 'template':
-                self.case_item['template'] = Template(child=self.case_stack.stack, **attribute)
+                template_child = self.case_stack.stack[0]
+                self.case_item['template'] = Template(child=template_child, **attribute)
             self.case_stack.refresh()
 
 
+    '''
+    split wildcard and append 
+    '''
     def _process_child(self, node, mode='default'):
         holder = []
         for item in node:
@@ -150,20 +156,20 @@ class KomlHandler(ContentHandler):
     def _process_node(self, tag, node, attribute):
         if tag == 'pattern':
             pattern = self._process_child(node)
-            return pattern # pat
+            return pattern # pat li[union[....]]
         elif tag == 'subpat' or tag == 'follow': # [Li] or pattern
-            assert len(node) > 0, f'{tag} should have more than 1 Li element'
+            if len(node) == 0:
+                return []
             if isinstance(node[0], PatLi):
                 return node # [li<pat>, li<pat> ...]
             else:
                 pattern = self._process_child(node)
                 return [PatLi(child=pattern)] # no attr
-        elif tag == 'template':
-            assert len(node) > 0, f'{tag} should have more than 1 Li element'
-            if isinstance(node[0], Switch):
-                return node[0] # Switch returned alone
-            if isinstance(node[0], TemLi):
-                return node # [li<tem>, li<tem> ...]
+        elif tag == 'template': 
+            if len(node) < 1:
+                raise KomlCheckError('template should have at least one element' + self._location())
+            if isinstance(node[0], Switch) or isinstance(node[0], Random) or isinstance(node[0], TemLi):
+                return [node[0]]  # single element 
             else:
                 template = self._process_child(node)
                 return [TemLi(child=template)] # no attr
@@ -202,11 +208,19 @@ class KomlHandler(ContentHandler):
             pivot = self._process_child(node)
             return [Pivot(child=pivot, **attribute)]
         elif tag == 'scase':
-            scase = self._process_child(node)
-            return [Scase(child=scase, **attribute)]
+            if isinstance(node[0], Random):
+                assert len(node) == 1 , 'random can apear only one'
+                return [Scase(child=node[0])]
+            else:
+                template = self._process_child(node)
+                return [Scase(child=TemLi(child=template), **attribute)]
         elif tag == 'default':
-            default = self._process_child(node)
-            return [Default(child=default, **attribute)]
+            if isinstance(node[0], Random):
+                assert len(node) == 1 , 'random can apear only one'
+                return [Default(child=node[0])]
+            else:
+                template = self._process_child(node)
+                return [Default(child=TemLi(child=template), **attribute)]
         elif tag == 'switch':
             pivot, scase, default = None, [], None
             for el in node:
@@ -220,14 +234,21 @@ class KomlHandler(ContentHandler):
                     raise KomlCheckError(f'tag {tag} not allowed in switch' + self._location())
             if not pivot or not default or scase == []:
                 raise KomlCheckError(f'pivot, scase, default are needed for switch' + self._location())
-            return [Switch(pivot=pivot, scase=scase, default=default)]
+            return [Switch(pivot=pivot, scase=scase, default=default, **attribute)]
+        elif tag == 'random':
+            assert len(node) > 0, f'random should have more than 1 element'
+            if not all([isinstance(x, TemLi) for x in node]):
+                raise KomlCheckError('all element in <random> tag should be <li>.. ' + self._location)
+            return [Random(child=node, **attribute)]
         else:
             raise KomlCheckError(f'tag {tag} not allowed' + self._location())
 
     def characters(self, content):
         self._characters(content)
         if self.state == self._INSIDE_PATTERN:
-            self.current_pattern = content
+            if self.current_pattern.startswith('NEXT'):
+                self.current_pattern = ''
+            self.current_pattern += content
     
     def _characters(self, content):
         if content == '\n' or content.isspace():
@@ -252,6 +273,9 @@ class KomlHandler(ContentHandler):
         pattern = case.pattern
         subpat = case.subpat
         template = case.template
+        # check case
+        if case.id and ' ' in case.id:
+            raise KomlCheckError(f'no space allowed in case id {case.id}')
 
         # check pattern
         patstar_cnt = 0

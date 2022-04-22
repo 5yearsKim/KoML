@@ -1,0 +1,1 @@
+from .a_wrapper import funcs

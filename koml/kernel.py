@@ -18,8 +18,9 @@ class Kernel:
         else:
             self.funcs = custom_func
     
-    def learn(self, files):
+    def learn(self, files, save_path=None):
         for file in files:
+            print('@ ' + file)
             parser = create_parser()
             handler = parser.getContentHandler()
             try:
@@ -30,17 +31,19 @@ class Kernel:
 
             for case in handler.cases:
                 self._brain.add(case)
-        self._brain.save('brain.pickle')
+        if save_path:
+            self._brain.save('brain.pickle')
     
     def recall(self, path):
         self._brain.load(path)
 
     def respond(self, question:str, context:Context):
         matched, args = self._brain.match(question, context)
+        # print(matched, args, context.history)
         if not matched:
             return None, context
         answer = self._resolve(matched, args, context)
-        context.push_history(question, answer)
+        context.push_history(question, answer, cid=matched.id)
         return answer, context
 
     def converse(self):
@@ -48,19 +51,31 @@ class Kernel:
         while True:
             question = input('<< ')
             answer, context = self.respond(question, context)
-            print(context.history)
             print(f'>> {answer}')
     
     def _resolve(self, case: Case, args: Tuple[str], context: Context):
-        template = case.template
-        if isinstance(template.child, Switch):
-            return 'switch need to be resolved' # TODO
-        elif isinstance(template.child, list):
-            temli = random.choice(template.child)
-            return self._resolve_template(temli.child, args, context)
-        else:
-            raise KomlKernelError(f'template type {template.child} not possible')
+        t_child = case.template.child
+        def resolve_helper(t_child):
+            if isinstance(t_child, Switch):
+                switch = t_child
+                pivot = self._resolve_template(switch.pivot.child, args, context)
+                # scase's child = Random | TemLi
+                for scase in switch.scase:
+                    if scase.pivot == pivot:
+                        return resolve_helper(scase.child)
+                # default's child = Random | TemLi
+                default = switch.default
+                return resolve_helper(default.child)
+            elif isinstance(t_child, Random):
+                temli = random.choice(t_child.child)
+                return self._resolve_template(temli.child, args, context)
+            elif isinstance(t_child, TemLi):
+                return self._resolve_template(t_child.child, args, context)
+            else:
+                raise KomlKernelError(f'template type {t_child} not possible')
+        return resolve_helper(t_child)
 
+    # only resolve TemplateT
     def _resolve_template(self, template: TemplateT, args: Tuple[str], context: Context):
         cnt_list = []
         def resolve_helper(tag):
@@ -85,22 +100,22 @@ class Kernel:
             if isinstance(tag, WildCard):
                 return tag # do not resolve - resolve in higher level
 
-            # exception: handle specially
+            # exception: Func handle specially
             if isinstance(tag, Func):
                 fargs = []
                 for t in tag.child:
-                    assert isinstance(t == Arg)
+                    assert isinstance(t, Arg)
                     farg = resolve_helper(t)
                     fargs.append(farg)
                 f = self.funcs[tag.name]
                 if not f:
-                    return 'undefined'
+                    return f'undefined function {tag.name}'
                 try:
                     return f(*fargs, context=context)
                 except Exception as e:
                     raise KomlKernelError(f'custom function {tag.name} with args {fargs} raised error: {e}')
             # has child from below
-            if tag.child:
+            if isinstance(tag, Node) and tag.child:
                 tag.child = resolve_helper(tag.child)
 
             if isinstance(tag, Star):

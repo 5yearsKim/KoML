@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE xml>
+<koml>
+
+
+  <case>
+    <pattern>내 이름은 <star pos='NN'/></pattern>
+    <template>안녕 <memo set='username'><star/></memo>! 만나서 반가워ㅋㅋ</template>
+  </case>
+
+  <case id = 'know_username'>
+    <pattern>* 내 이름 뭔지 알아_?</pattern>
+    <subpat>
+      <li>* 내 이름 알아?</li>
+    </subpat>
+    <template>
+      <switch>
+        <pivot><func name='know'><arg>username</arg></func></pivot>
+        <scase pivot='true'>응ㅋㅋ 알지</scase>
+        <default>아니.. 뭔데?</default>
+      </switch>
+    </template>
+  </case>
+
+  <case>
+    <follow cid='know_username'>응 *</follow>
+    <pattern>* 뭔데_?</pattern>
+    <subpat>
+      <li>뭐야_?</li>
+      <li>* 말해봐</li>
+      <li>* 알려줘</li>
+    </subpat>
+    <template><memo get='username'/>_i잖아ㅋㅋ 날 뭘로 보고</template>
+  </case>
+
+  <case>
+    <follow cid='know_username'>아니 *</follow>
+    <pattern>내 이름은 <star pos='NN'/></pattern>
+    <subpat>
+      <li><star pos='NN'/></li>
+    </subpat>
+    <template>아 오키ㅋㅋ 이제 기억할게! <think><memo set='username'><star/></memo></think></template>
+  </case>
+</koml>

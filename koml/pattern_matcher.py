@@ -1,6 +1,7 @@
 import pickle
 from .tags import * 
-from korean_rule_helper import KoreanRuleHelper, KoreanSentence
+from korean_rule_helper import KoreanRuleHelper
+from .utils import make_sentence
 
 class PatternMatcherError(Exception):
     pass
@@ -60,29 +61,32 @@ class PatternMatcher:
 
 
     def match(self, sentence, context):
-        sentence = KoreanSentence(sentence)
+        sentence = make_sentence(sentence)
         holder = []
         for rcase in self.cases:
             # check follow
             follow = rcase.case.follow
-            if follow and context.history:
+
+            # follow but no context -> give up
+            if follow and not context.history:
+                continue
+
+            # with follow -> cid should match & pattern should match
+            if follow:
                 prev = context.history[0]
                 # follow with cid
+                if not prev.cid:
+                    continue
                 if follow.cid:
-                    try:
-                        fcase_idx = self.case_map[follow.cid]
-                        fcase = self.cases[fcase_idx]
-                    except:
-                        raise PatternMatcherError(f'cid {follow.cid} not in the scope')
-                    prev_question = KoreanSentence(prev.question)
-                    is_case_match, _, _ = self._is_case_match(prev_question, fcase)
-                    if not is_case_match:
-                        continue # give up the case
+                    cids = follow.cid.split(' ')
+                    if prev.cid not in cids:
+                        continue
+
                 # follow pattern match
                 if follow.child:
                     matched_flag = False
                     for f_pat in rcase.follow :
-                        prev_answer = KoreanSentence(prev.answer)
+                        prev_answer = make_sentence(prev.answer)
                         is_match, args = self.ruler.match(prev_answer, f_pat)
                         if is_match:
                             matched_flag = True
@@ -97,7 +101,7 @@ class PatternMatcher:
 
         if holder:
             case, args, _ = max(holder, key=lambda x: x[2])
-            return case, args 
+            return case.copy(deep=True), args
         else:
             return None, None
 
@@ -134,13 +138,17 @@ class PatternMatcher:
             if isinstance(pat, Text):
                 score += len(pat.val)
             elif isinstance(pat, WildCard) and pat.optional:
-                score -= 2
+                score -= 1 
             elif isinstance(pat, PatStar):
-                score -= 5
+                score -= 1 
         if follow:
-            score += 10
+            score += 4 
             if follow.cid:
-                score += 10
+                score += 5
+            for fol_li in follow.child:
+                for tag in fol_li.child:
+                    if isinstance(tag, Text):
+                        score += len(tag.val) // 2
         return score
 
     def _convert_wildcard(self, wildcard):
