@@ -48,9 +48,9 @@ class KomlHandler(ContentHandler):
         elif self.state == self._INSIDE_SUBPAT:
             allowed = ['li', 'star']
         elif self.state == self._INSIDE_TEMPLATE:
-            allowed = ['random', 'li', 'star', 'memo', 'think', 'func', 'arg', 'switch']
+            allowed = ['random', 'li', 'star', 'set', 'get', 'think', 'func', 'arg', 'switch']
         elif self.state == self._INSIDE_SWITCH:
-            allowed = ['pivot', 'scase', 'default', 'random', 'li', 'star', 'memo' , 'think', 'func', 'arg']
+            allowed = ['pivot', 'scase', 'default', 'random', 'li', 'star', 'set', 'get' , 'think', 'func', 'arg']
         if tag not in allowed:
             raise KomlCheckError(f'tag {tag} is not allowed in this scope' + self._location())
 
@@ -173,6 +173,7 @@ class KomlHandler(ContentHandler):
             else:
                 template = self._process_child(node)
                 return [TemLi(child=template)] # no attr
+        # process leaf from below
         elif tag == 'star' and self.state in [self._INSIDE_TEMPLATE, self._INSIDE_SWITCH]:
             return [Star(**attribute)]
         elif tag == 'star': 
@@ -182,6 +183,12 @@ class KomlHandler(ContentHandler):
             if 'npos' in attr and isinstance(attr['npos'], str):
                 attr['npos'] = [attr['npos']]
             return [PatStar(**attr)]
+        elif tag == 'get':
+            return [Get(**attribute)]
+        # node from below
+        elif tag == 'set':
+            set_child = self._process_child(node)
+            return [Set(child=set_child, **attribute)]
         elif tag == 'li':
             if self.state in [self._INSIDE_FOLLOW , self._INSIDE_SUBPAT]:
                 pattern = self._process_child(node)
@@ -194,9 +201,6 @@ class KomlHandler(ContentHandler):
         elif tag == 'think':
             think = self._process_child(node)
             return [Think(child=think, **attribute)]
-        elif tag == 'memo':
-            memo_child = self._process_child(node)
-            return [Memo(child=memo_child, **attribute)]
         elif tag == 'arg':
             arg = self._process_child(node)
             return [Arg(child=arg, **attribute)]

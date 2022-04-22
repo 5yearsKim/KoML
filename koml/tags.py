@@ -33,14 +33,15 @@ class Star(Leaf):
     idx: Optional[int]
     # idx > 0
 
+class Get(Leaf):
+    name: str
+
 #-------------tag with child----------------#
 class Think(Node):
     pass
 
-class Memo(Node):
-    set: Optional[str]
-    get: Optional[str]
-    # child with get not allowed
+class Set(Node):
+    name: str
 
 class Arg(Node):
     pass
@@ -50,7 +51,7 @@ class Func(Node):
     child: List[Arg]
 
 PatternT = List[Union[WildCard, Text, PatStar]]
-TemplateT = List[Union[WildCard, Text, Memo, Think, Star, Func]]
+TemplateT = List[Union[WildCard, Text, Set, Get, Think, Star, Func]]
 
 class PatLi(Node):
     child: PatternT 

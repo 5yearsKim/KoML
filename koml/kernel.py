@@ -126,11 +126,10 @@ class Kernel:
                     cnt_list.append('*') # to make arg_idx
                     arg_idx = min(len(cnt_list) - 1, len(args) - 1 )
                     return args[arg_idx]
-            if isinstance(tag, Memo):
-                if tag.get:
-                    return context.get_memo(tag.get)
-                if tag.set and tag.child:
-                    context.set_memo(tag.set, tag.child)
+            if isinstance(tag, Get):
+                return context.get_memo(tag.name)
+            if isinstance(tag, Set) and tag.child:
+                context.set_memo(tag.name, tag.child)
                 return tag.child
             if isinstance(tag, Think):
                 return ''

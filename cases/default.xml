@@ -18,7 +18,7 @@
   <case>
     <pattern>너는 <star/>_s! 좋아 <star/>_s! 좋아_?</pattern>
     <subpat><star idx='2' pos='NNG'/>랑 <star idx='1'/> 중에 뭐가 * 좋아?</subpat>
-    <template>둘 다 좋아!</template>
+    <template>나는 <star idx='1'/>_o 더 좋아해!</template>
   </case>
 
 
@@ -28,7 +28,7 @@
       <li><star/> 좋아해?</li>
       <li><star/> 좋아?</li>
     </subpat>
-    <template><think><memo set='like'><star/></memo></think> 응ㅋㅋ 좋아하지</template>
+    <template><think><set name='like'><star/></set></think> 응ㅋㅋ 좋아하지</template>
   </case>
 
   <case>
@@ -39,7 +39,7 @@
       <li>이유가 뭐야?</li>
       <li>이유는?</li>
     </subpat>
-    <template>음.. 그냥 <memo get='like'/>_o 생각하면 기분이 좋아져ㅋㅋ</template>
+    <template>음.. 그냥 <get name='like'/>_o 생각하면 기분이 좋아져ㅋㅋ</template>
   </case>
 
 

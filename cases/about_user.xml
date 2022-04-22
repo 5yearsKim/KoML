@@ -5,7 +5,7 @@
 
   <case>
     <pattern>내 이름은 <star pos='NN'/></pattern>
-    <template>안녕 <memo set='username'><star/></memo>! 만나서 반가워ㅋㅋ</template>
+    <template>안녕 <set name='username'><star/></set>! 만나서 반가워ㅋㅋ</template>
   </case>
 
   <case id = 'know_username'>
@@ -30,7 +30,7 @@
       <li>* 말해봐</li>
       <li>* 알려줘</li>
     </subpat>
-    <template><memo get='username'/>_i잖아ㅋㅋ 날 뭘로 보고</template>
+    <template><get name='username'/>_i잖아ㅋㅋ 날 뭘로 보고</template>
   </case>
 
   <case>
@@ -39,6 +39,6 @@
     <subpat>
       <li><star pos='NN'/></li>
     </subpat>
-    <template>아 오키ㅋㅋ 이제 기억할게! <think><memo set='username'><star/></memo></think></template>
+    <template>아 오키ㅋㅋ 이제 기억할게! <think><set name='username'><star/></set></think></template>
   </case>
 </koml>
