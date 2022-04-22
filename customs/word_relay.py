@@ -3,7 +3,7 @@ import re
 
 funcs = {}
 
-word_relay = WordRelay(words_path='customs/killing_words.txt')
+word_relay = WordRelay(words_path='customs/killing_words.txt', debug_print=False)
 hangul = re.compile('[^ ㄱ-ㅣ가-힣]+')
 
 def state_word_relay(word: str, *args, context=None):
@@ -32,7 +32,7 @@ def state_word_relay(word: str, *args, context=None):
     if not is_start and not is_continue:
         return 'no_match'
     
-    next_word = word_relay.get_next(word)
+    next_word = word_relay.get_next(word, log_history=False)
     if next_word:
         return 'found'
     return 'no_found'
@@ -40,7 +40,7 @@ funcs['state_word_relay'] = state_word_relay
 
 def get_word_relay(word :str, *args, context=None):
     word = hangul.sub('', word)
-    next_word = word_relay.get_next(word)
+    next_word = word_relay.get_next(word, log_history=True)
     if not next_word:
         return '멍청이ㅋㅋㅋ'
     return next_word
