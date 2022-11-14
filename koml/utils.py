@@ -43,7 +43,7 @@ def substitute_word(sent: KoreanSentence):
         sent = sent.replace(rule, expr)
     return sent
 
-def make_sentence(sent: str):
+def make_sentence(sent: str) -> str:
     sent = preprocess(sent)
     sent = KoreanSentence(sent)
     sent = substitute_word(sent)
@@ -51,7 +51,7 @@ def make_sentence(sent: str):
         
 
 if  __name__ == '__main__':
-    from config import WILDCARDS
+    from koml.config import WILDCARDS
     wcs = WILDCARDS 
     sent = '너_x 나 좋아해>'
     result = split_wildcards(sent, wcs)

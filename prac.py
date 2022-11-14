@@ -59,4 +59,4 @@ if  __name__ == "__main__":
    parser.parse("movies.xml")
    handler = parser.getContentHandler()
    for key, tem in handler.categories.items():
-       print(key, tem)
+      print(key, tem)

@@ -12,7 +12,6 @@ class Memory(BaseModel):
     memo: Dict[str, str]
 
 
-
 class Context:
     _WRITE_MEMO = 0
     def __init__(self):

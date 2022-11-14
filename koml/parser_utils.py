@@ -1,24 +1,24 @@
 
 class TagStack:
-    def __init__(self):
+    def __init__(self) -> None:
         self.tag_dict = {}
         self.stack = []
         self.tag_history = [] # for assertion
         self.used = False
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self.stack)
 
-    def is_resolved(self):
+    def is_resolved(self) -> bool:
         return self.used and self.tag_history == []
 
-    def refresh(self):
+    def refresh(self) -> None:
         self.tag_dict.clear()
         self.stack.clear()
         self.tag_history.clear()
         self.used = False
     
-    def push_tag(self, tag, attributes):
+    def push_tag(self, tag: str, attributes: dict[str, str]):
         self.used = True
         item = (len(self.stack), tag, attributes)
         if tag in self.tag_dict:

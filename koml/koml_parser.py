@@ -17,26 +17,25 @@ class KomlHandler(ContentHandler):
     _INSIDE_CASE=3
     _INSIDE_FOLLOW = 4
     _INSIDE_PATTERN = 5 
-    _INSIDE_SUBPAT = 6 
+    _INSIDE_SUBPAT = 6
     _INSIDE_TEMPLATE = 7
     _INSIDE_SWITCH = 8
 
-    def __init__(self):
-        self.case_stack = TagStack()
-        self.state = self._BEGIN
+    def __init__(self) -> None:
+        super().__init__()
+        self.case_stack :TagStack = TagStack()
+        self.state :int = self._BEGIN
         self.case_item = {}
         self.cases = []
         self.current_pattern = ''
-        # self.locator = Locator()
-        # self.setDocumentLocator(self.locator)
 
-    def _location(self):
-        # line = self.locator.getLineNumber()
-        # column = self.locator.getColumnNumber()
-        # return f'(line {line}, column {column})' 
-        return f'@case({self.current_pattern})'
+    def _location(self) -> str:
+        locator = self._locator
+        line = locator.getLineNumber()
+        column = locator.getColumnNumber()
+        return f'line {line}, column {column}, @case({self.current_pattern})'
 
-    def startElement(self, tag, attributes):
+    def startElement(self, tag: str, attributes: dict[str, str]) -> None:
         if self.state == self._BEGIN:
             allowed = ['koml', 'case']
         elif self.state == self._INSIDE_CASE:
@@ -52,7 +51,7 @@ class KomlHandler(ContentHandler):
         elif self.state == self._INSIDE_SWITCH:
             allowed = ['pivot', 'scase', 'default', 'random', 'li', 'star', 'set', 'get' , 'think', 'func', 'arg']
         if tag not in allowed:
-            raise KomlCheckError(f'tag {tag} is not allowed in this scope' + self._location())
+            raise KomlCheckError(f'tag {tag} is not allowed in this scope' + '\n' + self._location())
 
         self._start_element(tag, attributes)
 
@@ -70,7 +69,7 @@ class KomlHandler(ContentHandler):
         elif tag == 'switch':
             self.state = self._INSIDE_SWITCH
     
-    def _start_element(self, tag, attributes):
+    def _start_element(self, tag: str, attributes: dict[str, str]) -> None:
         if tag == 'koml':
             pass
         elif tag == 'case':
@@ -80,7 +79,7 @@ class KomlHandler(ContentHandler):
             self.case_stack.push_tag(tag, attributes)
 
 
-    def endElement(self, tag):
+    def endElement(self, tag: str) -> None:
         if tag == 'koml':
             pass
         elif tag == 'case':
@@ -113,7 +112,7 @@ class KomlHandler(ContentHandler):
             self.state = self._INSIDE_TEMPLATE
 
     # process tag except [koml, case]
-    def _end_element(self, tag): 
+    def _end_element(self, tag: str) -> None: 
         node, attribute = self.case_stack.get_node(tag)
         resolved = self._process_node(tag, node, attribute)
         self.case_stack.resolve(tag, resolved)
@@ -135,7 +134,7 @@ class KomlHandler(ContentHandler):
     '''
     split wildcard and append 
     '''
-    def _process_child(self, node, mode='default'):
+    def _process_child(self, node, mode: str='default'):
         holder = []
         for item in node:
             if isinstance(item, str):
