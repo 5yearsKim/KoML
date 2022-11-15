@@ -1,7 +1,5 @@
-from logging import raiseExceptions
 import xml
 from xml.sax.handler import ContentHandler
-from xml.sax.xmlreader import Locator
 
 from .utils import split_wildcards
 from .config import *

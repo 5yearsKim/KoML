@@ -20,7 +20,7 @@ class Kernel:
     
     def learn(self, files, save_path=None):
         for file in files:
-            print('@ ' + file)
+            print('processing @ ' + file)
             parser = create_parser()
             handler = parser.getContentHandler()
             try:
