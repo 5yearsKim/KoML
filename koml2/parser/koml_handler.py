@@ -19,7 +19,7 @@ class KomlHandler(ContentHandler):
 
     @property
     def location(self) -> FileLoc:
-        locator = self._locator # type : ignore
+        locator = self._locator # type: ignore
         line, column = locator.getLineNumber(), locator.getColumnNumber()
         return FileLoc(line, column)
 
