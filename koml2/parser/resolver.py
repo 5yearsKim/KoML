@@ -1,61 +1,156 @@
+# from xml.sax.xmlreader import Locator
+from typing import Callable
 from ..tags import *
 from .errors import KomlCheckError, FileLoc
 from .koml_state import KomlState
+from .utils import split_wildcards
+from ..config import WILDCARDS
 
 class RawTag:
     def __init__(self, tag: str, attr: dict[str, str]={}):
         self.tag: str = tag
         self.attr: dict[str, str] = attr
 
+    def __repr__(self) -> str:
+        return f'RawTag({self.tag})'
+
 class Resolver:
-    def __init__(self, locator=None):
+    def __init__(self, get_loc: Callable[[], FileLoc]) -> None:
         self.stack: list[str|RawTag|Tag] = []
-        self.used: bool = False
-        self.locator = locator
+        # self.used: bool = False
+        self.get_loc = get_loc
 
     @property
     def location(self) -> FileLoc:
-        locator = self._locator # type: ignore
-        line, column = locator.getLineNumber(), locator.getColumnNumber()
-        return FileLoc(line, column)
+        return self.get_loc() 
 
 
     def _raw_tag_at(self, tag: str) -> int:
-        for i in range(len(self.stack) -1, 0, -1):
+        for i in range(len(self.stack) -1, -1, -1):
             item = self.stack[i]
             if isinstance(item, RawTag) and item.tag == tag:
                 return i
         return -1
-
     
-    def push_tag(self, tag: str, attr: dict[str, str]={}):
-        self.used = True
+    def push_tag(self, tag: str, attr: dict[str, str]={}) -> None:
+        # self.used = True
         raw_tag = RawTag(tag, attr)
         self.stack.append(raw_tag)
     
-    def push_content(self, content: str):
-        assert self.tag_idx is not None
+    def push_content(self, content: str) -> None:
         self.stack.append(content)
+
+    def finalize(self) -> Case:
+        if not (self.stack and isinstance(self.stack[0], Case)):
+            raise KomlCheckError('tag <case> failed to resolved', self.location)
+        case: Case = self.stack[0]
+        self.stack.clear()
+        return case
+
+
+
     
-    def resolve(self, tag: str, state: KomlState=KomlState.BEGIN):
+    def resolve(self, tag: str, state: KomlState) -> None:
         tag_idx = self._raw_tag_at(tag)
         if tag_idx < 0:
-            raise KomlCheckError(f'tag <{tag}> cannot be resolved')
-        raw_tag = self.stack[tag_idx]
+            print(self.stack)
+            raise KomlCheckError(f'tag <{tag}> cannot be resolved', self.location)
+        raw_tag: RawTag = self.stack[tag_idx] #type: ignore
         raw_items = self.stack[tag_idx + 1:]
+        resolved = self._resolve(raw_tag, raw_items, state) 
+        self.stack = self.stack[:tag_idx] + [resolved]
 
     
-    def _resolve(self, tag: str, items: list[str, RawTag, Tag], state: KomlState) -> Tag:
+    def _resolve(self, raw: RawTag, items: list[str|RawTag|Tag], state: KomlState) -> Tag:
+        tag , attr = raw.tag, raw.attr
+
         processed: list[Tag] = []
-        for item in items:
-            if isinstance(item, RawTag):
-                raise KomlCheckError(f'tag <{tag}> found in wrong place')
-        if tag == 'pattern':
-            pass
-        elif tag == 'template':
-            pass
-        elif tag == 'blank' and state in [KomlState.IN_CASE, KomlState.IN_SWITCH]:
-            return Blank()
+        # processing child
+        if any([isinstance(x, str) for x in items]):
+            for item in items:
+                if isinstance(item, RawTag):
+                    raise KomlCheckError(f'tag <{tag}> found in wrong place', self.location)
+                elif isinstance(item, str):
+                    words, is_wcs = split_wildcards(item, WILDCARDS)
+                    for word, is_wc in zip(words, is_wcs):
+                        if is_wc:
+                            optional = True if word.endswith('?') else False
+                            if optional and (state in [KomlState.IN_TEMPLATE]):
+                                raise KomlCheckError(f'optional wildcard {word} is not allowed in template. Did you mean {word[:-1]}?', self.location)
+                            processed.append(WildCard(word))
+                        else:
+                            processed.append(Text(word))
+                elif isinstance(item, Tag):
+                    processed.append(item)
+                else:
+                    raise KomlCheckError(f'tag <{tag}> is not supported', self.location)
+        else:
+            assert all([not isinstance(x, RawTag) for x in items])
+            processed = items # type: ignore
+        try :
+            if tag == 'case':
+                follow: Follow|None = None
+                pattern: Pattern|None = None
+                template: Template|None = None
+                for item in processed:
+                    if isinstance(item, Follow):
+                        follow = item
+                    elif isinstance(item, Pattern):
+                        pattern = item
+                    elif isinstance(item, Template):
+                        template = item
+                    else:
+                        raise KomlCheckError(f'tag {item} not supported for case', self.location)
+                if pattern is None:
+                    raise KomlCheckError('pattern is required for case', self.location)
+                if template is None:
+                    raise KomlCheckError('template is required for case', self.location)
+                return Case(pattern, template, follow=follow, attr=attr)
+            elif tag == 'follow':
+                if all(isinstance(x, PatItem) for x in processed):
+                    return Follow(processed, attr=attr) # type: ignore
+                elif any(isinstance(x, PatItem ) for x in processed):
+                    raise KomlCheckError(f'contents inside of <follow> maybe is outside of <li> tag', self.location)
+                else:
+                    pat_item = PatItem(processed)
+                    return Follow([pat_item], attr=attr)
+            elif tag == 'pattern':
+                if all(isinstance(x, PatItem) for x in processed):
+                    return Pattern(processed, attr=attr) # type: ignore
+                elif any(isinstance(x, PatItem ) for x in processed):
+                    raise KomlCheckError(f'contents inside of <pattern> maybe is outside of <li> tag', self.location)
+                else:
+                    pat_item = PatItem(processed)
+                    return Pattern([pat_item], attr=attr)
+            elif tag == 'template':
+                tem_item = TemItem(processed)
+                return Template(tem_item, attr=attr)
+            # processing leafs
+            elif tag == 'blank'  and state in [KomlState.IN_FOLLOW, KomlState.IN_PATTERN]:
+                return PatBlank(attr=attr)
+            elif tag == 'blank':
+                return Blank(attr=attr)
+            elif tag == 'get':
+                return Get(attr=attr)
+            #processing nodes
+            elif tag == 'li':
+                if state in [KomlState.IN_FOLLOW, KomlState.IN_PATTERN]:
+                    return PatItem(processed)
+                elif state in [KomlState.IN_TEMPLATE]:
+                    return TemItem(processed)
+                else:
+                    raise KomlCheckError(f'<li> tag is not applicable for state {state}', self.location)
+            elif tag == 'set':
+                return Set(processed, attr=attr)
+            elif tag == 'think':
+                return Think(processed, attr=attr)
+            else:
+                raise KomlCheckError(f'tag {tag} is not allowed', self.location)
+        except TagError as e:
+            raise KomlCheckError(f'Tag Error: {e}', self.location)
+
+        
+        
 
 
 
@@ -63,4 +158,4 @@ class Resolver:
 
 
 
-    
+        

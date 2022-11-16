@@ -5,36 +5,54 @@ from .utils import csv2list
 
 class Text(Tag):
     def __init__(self, val: str) -> None:
-        super().__init__(attr={})
         self.val: str = val
+        super().__init__(attr={})
+    
+    def __repr__(self) -> str:
+        return f'T({self.val})'
+
+    def _check(self) -> None:
+        pass
+
+    def _decode_attr(self) -> None:
+        pass
+
 
 class WildCard(Tag):
     def __init__(self, val: str) -> None:
-        super().__init__(attr={})
         self.val: str = val
-        self._check()
+        super().__init__(attr={})
     
+    def __repr__(self) -> str:
+        return f'WC({self.val})'
+
     def _check(self) -> None:
         if not self.val:
             raise TagError('wildcard value not initialized')
         if self.val not in WILDCARDS:
             raise TagError(f'wildcard value {self.val} is not supported')
 
+    def _decode_attr(self) -> None:
+        pass
+
 class PatBlank(Tag):
     def __init__(self, attr: dict[str, str]={}) -> None:
-        super().__init__(attr=attr)
         self.idx: int = 0 
         self.key: str|None = None
         self.pos: list[str] = []
         self.npos: list[str] = []
-        self._decode_attr()
-        self._check()
+        super().__init__(attr=attr)
+
+    def __repr__(self) -> str:
+        att_str = ','.join([f'{k}: {v}' for k, v in self.attr.items()])
+        return f'PatBlank({att_str})'
+
     
-    def _decode_attr(self):
-        for k, v in self.attr:
+    def _decode_attr(self) -> None:
+        for k, v in self.attr.items():
             if k == 'key':
                 self.key = v
-            if k == 'idx':
+            elif k == 'idx':
                 self.idx = int(v)
             elif k == 'pos':
                 self.pos = csv2list(v)
@@ -49,16 +67,20 @@ class PatBlank(Tag):
 
 class Blank(Tag):
     def __init__(self, attr: dict[str, str]) -> None:
-        super().__init(attr=attr)
         self.idx: int = 0
         self.key : str|None = None
-        self._check()
+        super().__init__(attr=attr)
+
+
+    def __repr__(self) -> str:
+        att_str = ','.join([f'{k}: {v}' for k, v in self.attr.items()])
+        return f'Blank({att_str})'
     
-    def _decode_attr(self):
-        for k, v in self.attr:
+    def _decode_attr(self) -> None:
+        for k, v in self.attr.items():
             if k == 'key':
                 self.key = v
-            if k == 'idx':
+            elif k == 'idx':
                 self.idx = int(v)
             else:
                 raise TagError(f'Blank attribute {k}={v} not supported')
@@ -66,9 +88,22 @@ class Blank(Tag):
     def _check(self) -> None:
         pass
 
+class Get(Tag):
+    def __init__(self, attr: dict[str, str]) -> None:
+        self.key: str = ''
+        super().__init__(attr=attr)
 
+    def __repr__(self) -> str:
+        att_str = ','.join([f'{k}: {v}' for k, v in self.attr.items()])
+        return f'Get({att_str})'
 
+    def _check(self) -> None:
+        if not self.key:
+            raise TagError(f'key attribute for <Get> is required')
     
-
-# class WildCard(Tag):
-    
+    def _decode_attr(self) -> None:
+        for k, v in self.attr.items():
+            if k == 'key':
+                self.key = v
+            else:
+                raise TagError(f'Set attribute {k}={v} not supported')

@@ -1,5 +1,6 @@
 import xml
 from xml.sax.handler import ContentHandler
+from xml.sax.xmlreader import Locator
 from .errors import KomlCheckError, FileLoc
 from .koml_state import KomlState
 from .resolver import Resolver
@@ -8,12 +9,14 @@ class KomlHandler(ContentHandler):
     def __init__(self) -> None:
         super().__init__()
         self.state :KomlState = KomlState.BEGIN
-
+        def get_loc() -> FileLoc:
+            return self.location
+        self.resolver :Resolver = Resolver(get_loc) #type: ignore
 
     @property
     def location(self) -> FileLoc:
-        locator = self._locator # type: ignore
-        line, column = locator.getLineNumber(), locator.getColumnNumber()
+        locator: Locator = self._locator # type: ignore
+        line, column = locator.getLineNumber(), locator.getColumnNumber() #type: ignore
         return FileLoc(line, column)
 
     def startElement(self, tag: str, attributes: dict[str, str]) -> None:
@@ -27,12 +30,16 @@ class KomlHandler(ContentHandler):
             allowed = ['li', 'blank']
         elif self.state == KomlState.IN_TEMPLATE:
             allowed = ['random', 'li', 'blank', 'set', 'get', 'think', 'func', 'arg', 'switch']
-        elif self.state == KomlState.IN_SWITCH:
-            allowed = ['pivot', 'scase', 'default', 'random', 'li', 'blank', 'set', 'get' , 'think', 'func', 'arg']
+        # elif self.state == KomlState.IN_SWITCH:
+        #     allowed = ['pivot', 'scase', 'default', 'random', 'li', 'blank', 'set', 'get' , 'think', 'func', 'arg']
         if tag not in allowed:
-            raise KomlCheckError(f'tag {tag} is not allowed in this scope', self.location)
+            raise KomlCheckError(f'tag {tag} is not allowed in {self.state} state', self.location)
 
-        # self._start_element(tag, attributes)
+        # logic
+        if tag == 'koml':
+            pass
+        else:
+            self.resolver.push_tag(tag, attr=attributes)
 
         if tag == 'case':
             self.state = KomlState.IN_CASE 
@@ -42,8 +49,30 @@ class KomlHandler(ContentHandler):
             self.state =  KomlState.IN_PATTERN
         elif tag == 'template':
             self.state = KomlState.IN_TEMPLATE
-        elif tag == 'switch':
-            self.state = KomlState.IN_SWITCH
 
     def endElement(self, tag: str) -> None:
-        print('end tag', tag)
+        if tag == 'koml':
+            pass
+        elif tag == 'case':
+            self.resolver.resolve(tag, self.state)
+            case = self.resolver.finalize()
+            print(case)
+        else:
+            self.resolver.resolve(tag, self.state)
+        
+        if tag == 'case':
+            self.state = KomlState.BEGIN
+        elif tag == 'follow':
+            self.state = KomlState.IN_CASE
+        elif tag == 'pattern':
+            self.state = KomlState.IN_CASE
+        elif tag == 'template':
+            self.state = KomlState.IN_CASE
+
+    def characters(self, content: str) -> None:
+        if content == '\n' or content.isspace():
+            return
+        self.resolver.push_content(content)
+    
+        
+        

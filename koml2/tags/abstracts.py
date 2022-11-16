@@ -4,18 +4,41 @@ import textwrap
 class Tag(ABC):
     def __init__(self, attr: dict[str, str]={}):
         self.attr = attr
+        self._decode_attr()
+        self._check()
 
-    def __str__(self) -> str:
-        attr_list = [f'{k}: {v}' for k, v in self.attr.items()]
-        attr_str = ','.join(attr_list)
-        title = f'{self.__class__.__name__}({attr_str})'
-        if (self.child):
-            return title + '\n' + textwrap.indent(str(self.child), '  ')
-        return title
+    @abstractmethod
+    def __repr__(self) -> str:
+        pass
 
     @abstractmethod 
-    def _check(self):
+    def _check(self) -> None:
         pass
+
+    @abstractmethod 
+    def _decode_attr(self) -> None:
+        pass
+
+class Node(Tag):
+    def __init__(self, child: list[Tag], attr: dict[str, str]={}):
+        self.child: list[Tag] = child
+        super().__init__(attr=attr)
+
+    def __repr__(self) -> str:
+        att_str = ','.join([f'{k}: {v}' for k, v in self.attr.items()])
+        if att_str:
+            return f'{self.__class__.__name__}({self.child}, {att_str})' 
+        else :
+            return f'{self.__class__.__name__}({self.child})' 
+
+    @abstractmethod 
+    def _check(self) -> None:
+        pass
+
+    @abstractmethod 
+    def _decode_attr(self) -> None:
+        pass
+
 
 
     

@@ -10,7 +10,9 @@ class FileLoc:
 class KomlCheckError(Exception):
     def __init__(self, message: str, loc: FileLoc|None) -> None:
         if (loc):
-            message = f'line {loc.line}, col {loc.col} \n {message}'
+            divider = '********************************************'
+            loc_msg = f'line {loc.line}, col {loc.col} \n {message}'
+            message = f'\n{divider}\n{loc_msg}\n{message}'
         super().__init__(message)
 
     

@@ -9,7 +9,7 @@ from koml2 import KomlBot
 if __name__ == '__main__':
     from glob import glob
     kernel = KomlBot()
-    files = glob('cases/*.xml', recursive=True)
+    files = glob('cases2/*.xml', recursive=True)
     # print(files)
     # kernel.remember('brain.pickle')
     kernel.learn(files)

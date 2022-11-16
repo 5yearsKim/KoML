@@ -6,4 +6,3 @@ class KomlState(Enum):
     IN_FOLLOW=2
     IN_PATTERN=3
     IN_TEMPLATE=4
-    IN_SWITCH=5

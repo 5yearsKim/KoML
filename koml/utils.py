@@ -10,9 +10,6 @@ def split_wildcards(sent, wildcards):
     while i < len(sent):
         is_match = False
         for wc in wildcards:
-            # print(sent[i:i+len(wc)], wc)
-            # print(is_match)
-            # print('--')
             if sent[i:i+len(wc)] == wc:
                 is_match = True
                 break
