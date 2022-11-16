@@ -8,24 +8,20 @@
       <li>ㅎ</li>
     </pattern>
     <template>
-      <random>
-        <li>왜웃어ㅋㅋㅋㅋ</li>
-        <li>웃기지ㅋㅋㅋㅋ</li>
-        <li>ㅋㅋ왜ㅋㅋㅋ</li>
-      </random>
+        왜웃어ㅋㅋㅋㅋ
     </template>
 
   </case>
 
   <case>
     <pattern>
-      <li>너는 <star/>_s! 좋아 <star/>_s! 좋아_?</li>
-      <li><star key='2' pos='NNG'/>랑 <star key='1'/> 중에 뭐가 * 좋아?</li>
+      <li>너는 <blank/>_s! 좋아 <blank/>_s! 좋아_?</li>
+      <li><blank key='2' pos='NNG'/>랑 <blank key='1'/> 중에 뭐가 * 좋아?</li>
     </pattern>
-    <template>나는 <star key='1'/>_o 더 좋아해!</template>
+    <template>나는 <blank key='1'/>_o 더 좋아해!</template>
   </case>
 
-
+<!-- 
   <case id='like_1'>
     <pattern>
       <li>너_x <star/> 좋아해? </li>
@@ -55,5 +51,5 @@
   <case>
     <pattern>넌 똥 좋아해?</pattern>
     <template>똥을 누가 좋아해ㅋㅋㅋ</template>
-  </case>
+  </case> -->
 </koml>

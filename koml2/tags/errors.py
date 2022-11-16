@@ -1,0 +1,3 @@
+
+class TagError(Exception):
+    pass
