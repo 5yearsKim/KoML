@@ -3,16 +3,9 @@ from typing import Callable
 from ..tags import *
 from .errors import KomlCheckError, FileLoc
 from .koml_state import KomlState
+from .raw_tag import RawTag
 from .utils import split_wildcards
 from ..config import WILDCARDS
-
-class RawTag:
-    def __init__(self, tag: str, attr: dict[str, str]={}):
-        self.tag: str = tag
-        self.attr: dict[str, str] = attr
-
-    def __repr__(self) -> str:
-        return f'RawTag({self.tag})'
 
 class Resolver:
     def __init__(self, get_loc: Callable[[], FileLoc]) -> None:
@@ -74,10 +67,10 @@ class Resolver:
                     words, is_wcs = split_wildcards(item, WILDCARDS)
                     for word, is_wc in zip(words, is_wcs):
                         if is_wc:
-                            optional = True if word.endswith('?') else False
-                            if optional and (state in [KomlState.IN_TEMPLATE]):
+                            wildcard = WildCard(word)
+                            if wildcard.optional and (state in [KomlState.IN_TEMPLATE]):
                                 raise KomlCheckError(f'optional wildcard {word} is not allowed in template. Did you mean {word[:-1]}?', self.location)
-                            processed.append(WildCard(word))
+                            processed.append(wildcard)
                         else:
                             processed.append(Text(word))
                 elif isinstance(item, Tag):

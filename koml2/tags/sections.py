@@ -1,18 +1,19 @@
 from .abstracts import Tag
 from .items import PatItem, TemItem
 from .errors import TagError
+from .utils import csv2list
 
 class Follow(Tag):
     def __init__(self, children: list[PatItem], attr: dict[str, str] ) -> None:
         self.children: list[PatItem] = children
         # attributes
-        self.cid: str|None = None 
+        self.cid: list[str] = [] 
         super().__init__(attr=attr)
     
     def __repr__(self) -> str:
         att_str = ','.join([f'{k}: {v}' for k, v in self.attr.items()])
-        flist = list(map(lambda x: f' ㄴ {x}' ,self.children))
-        return f'Follow {att_str}\n' + '\n'.join(flist) 
+        flist = list(map(lambda x: f'\n ㄴ {x}' ,self.children))
+        return f'Follow {att_str}' + ''.join(flist) 
 
     def _check(self) -> None:
         pass
@@ -20,7 +21,7 @@ class Follow(Tag):
     def _decode_attr(self) -> None:
         for k, v in self.attr.items():
             if k == 'cid':
-                self.cid = v
+                self.cid =  csv2list(v) 
             else:
                 raise TagError(f'<Follow> attribute {k}={v} not supported')
 

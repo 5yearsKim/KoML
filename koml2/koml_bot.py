@@ -1,9 +1,10 @@
 import xml
 from .parser import create_parser
+from .pattern_matcher import PatternMatcher
 
 class KomlBot:
     def __init__(self) -> None:
-        pass
+        self.matcher: PatternMatcher = PatternMatcher()
 
     def learn(self, files: list[str], save_path: str | None =None) -> None:
         for file in files:
@@ -15,4 +16,7 @@ class KomlBot:
             except xml.sax.SAXParseException as e:
                 print(f'parse error: {e}')
                 continue
+            for case in handler.cases:
+                self.matcher.add(case)
+        print(self.matcher.patterns)
         

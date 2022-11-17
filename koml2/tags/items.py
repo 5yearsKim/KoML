@@ -1,4 +1,7 @@
 from .abstracts import Tag
+from .errors import TagError
+from .leafs import *
+from .nodes import *
 
 class PatItem(Tag):
     def __init__(self, child: list[Tag]):
@@ -9,7 +12,10 @@ class PatItem(Tag):
         return f'PatItem({self.child})'
     
     def _check(self) -> None:
-        pass
+        for item in self.child:
+            if type(item) not in [Text, WildCard, PatBlank]:
+                raise TagError(f'{type(item)} is not allowed in Pattern')
+
     def _decode_attr(self) -> None:
         pass
 

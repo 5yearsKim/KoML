@@ -1,6 +1,6 @@
-import xml
 from xml.sax.handler import ContentHandler
 from xml.sax.xmlreader import Locator
+from ..tags import Case
 from .errors import KomlCheckError, FileLoc
 from .koml_state import KomlState
 from .resolver import Resolver
@@ -12,6 +12,7 @@ class KomlHandler(ContentHandler):
         def get_loc() -> FileLoc:
             return self.location
         self.resolver :Resolver = Resolver(get_loc) #type: ignore
+        self.cases: list[Case] = []
 
     @property
     def location(self) -> FileLoc:
@@ -56,7 +57,7 @@ class KomlHandler(ContentHandler):
         elif tag == 'case':
             self.resolver.resolve(tag, self.state)
             case = self.resolver.finalize()
-            print(case)
+            self.cases.append(case)
         else:
             self.resolver.resolve(tag, self.state)
         
