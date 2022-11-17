@@ -1,5 +1,5 @@
 from .abstracts import Tag
-from ..config import WILDCARDS
+from ..config import WILDCARDS, JOSAS
 from .errors import TagError
 from .utils import csv2list
 
@@ -39,9 +39,28 @@ class WildCard(Tag):
     def _decode_attr(self) -> None:
         pass
 
+class Josa(Tag):
+    def __init__(self, val: str) -> None:
+        self.val: str = val
+        super().__init__(attr={})
+
+    def __repr__(self) -> str:
+        return f'Josa({self.val})'
+    
+    def _check(self) -> None:
+        if not self.val:
+            raise TagError('Josa value not initialized')
+        if self.val not in JOSAS:
+            raise TagError(f'Josa value {self.val} is not supported')
+
+    def _decode_attr(self) -> None:
+        pass
+
+    
+
 class PatBlank(Tag):
     def __init__(self, attr: dict[str, str]={}) -> None:
-        self.idx: int = 0 
+        self.idx: int|None = None
         self.key: str|None = None
         self.pos: list[str] = []
         self.npos: list[str] = []
@@ -68,10 +87,13 @@ class PatBlank(Tag):
     def _check(self) -> None:
         if self.pos and self.npos:
             raise TagError('Pattern <Blank> cannot have pos and npos together!')
+        if self.idx and self.idx < 1:
+            raise TagError(f'pattern idx should be greater than 1, idx = {self.idx}')
+
 
 class Blank(Tag):
     def __init__(self, attr: dict[str, str]) -> None:
-        self.idx: int = 0
+        self.idx: int | None =  None
         self.key : str|None = None
         super().__init__(attr=attr)
 
@@ -90,7 +112,8 @@ class Blank(Tag):
                 raise TagError(f'Blank attribute {k}={v} not supported')
     
     def _check(self) -> None:
-        pass
+        if self.idx and self.idx < 1:
+            raise TagError(f'pattern idx should be greater than 1, idx = {self.idx}')
 
 class Get(Tag):
     def __init__(self, attr: dict[str, str]) -> None:

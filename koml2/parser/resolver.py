@@ -5,7 +5,7 @@ from .errors import KomlCheckError, FileLoc
 from .koml_state import KomlState
 from .raw_tag import RawTag
 from .utils import split_wildcards
-from ..config import WILDCARDS
+from ..config import WILDCARDS, JOSAS
 
 class Resolver:
     def __init__(self, get_loc: Callable[[], FileLoc]) -> None:
@@ -63,13 +63,19 @@ class Resolver:
             for item in items:
                 if isinstance(item, RawTag):
                     raise KomlCheckError(f'tag <{tag}> found in wrong place', self.location)
+                elif isinstance(item, str) and state == KomlState.IN_TEMPLATE:
+                    words, is_jss = split_wildcards(item, JOSAS)
+                    for word, is_js in zip(words, is_jss):
+                        if is_js:
+                            josa = Josa(word)
+                            processed.append(josa)
+                        else:
+                            processed.append(Text(word))
                 elif isinstance(item, str):
                     words, is_wcs = split_wildcards(item, WILDCARDS)
                     for word, is_wc in zip(words, is_wcs):
                         if is_wc:
                             wildcard = WildCard(word)
-                            if wildcard.optional and (state in [KomlState.IN_TEMPLATE]):
-                                raise KomlCheckError(f'optional wildcard {word} is not allowed in template. Did you mean {word[:-1]}?', self.location)
                             processed.append(wildcard)
                         else:
                             processed.append(Text(word))

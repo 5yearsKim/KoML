@@ -1,6 +1,8 @@
 import textwrap
-from .abstracts import Tag
+from .abstracts import Tag, Node
 from .sections import Follow, Pattern, Template
+from .leafs import *
+from .items import TemItem, PatItem
 from .errors import TagError
 
 class Case(Tag):
@@ -19,8 +21,6 @@ class Case(Tag):
             content = f'{self.follow}\n{content}'
         return f'*Case* {att_str}\n' + textwrap.indent(content, '  ') 
 
-    def _check(self) -> None:
-        pass
 
     def _decode_attr(self) -> None:
         for k, v in self.attr.items():
@@ -28,4 +28,66 @@ class Case(Tag):
                 self.id = v
             else:
                 raise TagError(f'<Case> attribute {k}={v} not supported')
+
+    def _check(self) -> None:
+        self._check_blank()
+
+    def _check_blank(self) -> None:
+        ''' check if pattern satisfy conditions for blanks of template '''
+        key_set: set[str] = set()
+        idx_set: set[int] = set()
+        tem_items: list[TemItem] = []
+        child = self.template.child
+        if isinstance(child, TemItem):
+            tem_items.append(child)
+        else:
+            raise TagError(f'checking for {child} not implemented yet..')
+
+        def _blank_search(tag: Tag) -> None:
+            ''' search all blank key and idx in template '''
+            if isinstance(tag, Node):
+                for t in tag.child:
+                    _blank_search(t)
+            else:
+                if isinstance(tag, Blank):
+                    if tag.key:
+                        key_set.add(tag.key)
+                    if tag.idx:
+                        idx_set.add(tag.idx)
+                else:
+                    return
+        for tem_item in tem_items:
+            _blank_search(tem_item)
+
+        def _assert_pattern(pat_item: PatItem, keys: list[str], max_idx:int|None=None) -> None:
+            ''' assert all keys/idx satisfy for pattern '''
+            # find all patblank first
+            blanks: list[PatBlank] = []
+            for tag in pat_item.child:
+                if isinstance(tag, PatBlank):
+                    blanks.append(tag)
+            # check if all keys exist in pattern
+            pat_blank_keys: list[str|None] = list(map(lambda x: x.key, blanks))
+            for key in keys:
+                if key not in pat_blank_keys:
+                    raise TagError(f'key {key} should exist in pattern {pat_item}')
+            # check if num blanks in pattern >= max_idx - 1
+            if max_idx:
+                if len(blanks) < max_idx:
+                    raise TagError(f'number of blank should be greater than idx {max_idx} for pattern {pat_item}')
+        for pat_item in self.pattern.children:
+            _assert_pattern(pat_item, list(key_set), max_idx=max(idx_set) if idx_set else None)
+
+
+
+
+
+
+
+
+
+
+
+
+    
     

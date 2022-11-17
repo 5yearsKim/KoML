@@ -7,11 +7,6 @@ class Set(Node):
         self.key: str = '' 
         super().__init__(child, attr=attr)
     
-    def __repr__(self) -> str:
-        att_str = ','.join([f'{k}: {v}' for k, v in self.attr.items()])
-        return f'Set({att_str})'
-
-
     def _check(self) -> None:
         if not self.key:
             raise TagError(f'key attribute for <Set> is required')

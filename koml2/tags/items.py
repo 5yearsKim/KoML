@@ -1,12 +1,11 @@
-from .abstracts import Tag
+from .abstracts import Node 
 from .errors import TagError
 from .leafs import *
 from .nodes import *
 
-class PatItem(Tag):
+class PatItem(Node):
     def __init__(self, child: list[Tag]):
-        self.child: list[Tag] = child
-        super().__init__(attr={})
+        super().__init__(child, attr={})
     
     def __repr__(self) -> str:
         return f'PatItem({self.child})'
@@ -19,10 +18,9 @@ class PatItem(Tag):
     def _decode_attr(self) -> None:
         pass
 
-class TemItem(Tag):
+class TemItem(Node):
     def __init__(self, child: list[Tag]):
-        self.child: list[Tag] = child
-        super().__init__(attr={})
+        super().__init__(child, attr={})
 
     def __repr__(self) -> str:
         return f'TemItem({self.child})'

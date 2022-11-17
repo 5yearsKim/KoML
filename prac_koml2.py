@@ -8,9 +8,11 @@ from koml2 import KomlBot
 
 if __name__ == '__main__':
     from glob import glob
-    kernel = KomlBot()
+    bot = KomlBot()
     files = glob('cases2/*.xml', recursive=True)
     # print(files)
     # kernel.remember('brain.pickle')
-    kernel.learn(files)
-    # kernel.converse()
+    bot.learn(files)
+    # matched  =bot.respond('내 이름은 고기')
+    # print(matched)
+    bot.converse()
