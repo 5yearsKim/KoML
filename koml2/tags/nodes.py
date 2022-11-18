@@ -32,4 +32,38 @@ class Think(Node):
     def _check(self) -> None:
         pass
     
+
+class Func(Node):
+    def __init__(self, child: list[Tag], attr: dict[str, str]={}) -> None:
+        self.name: str =''
+        super().__init__(child, attr=attr)
+
+    def _decode_attr(self) -> None:
+        for k, v in self.attr.items():
+            if k == 'name':
+                self.name = v
+            raise TagError(f'Func attribute {k}={v} not supported')
+    
+    def _check(self) -> None:
+        if not self.name:
+            raise TagError(f'Func must have attribute name')
+        if any([not isinstance(x, Arg) for x in self.child]):
+            raise TagError(f'Func can only have Arg Tag for child')
+
+
+
+class Arg(Node):
+    def __init__(self, child: list[Tag], attr: dict[str, str]={}) -> None:
+        super().__init__(child, attr=attr)
+
+    def _decode_attr(self) -> None:
+        for k, v in self.attr.items():
+            raise TagError(f'Func attribute {k}={v} not supported')
+    
+    def _check(self) -> None:
+        if not self.child:
+            raise TagError(f'Arg child should\'n be empty')
+
+    
+
     

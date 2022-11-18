@@ -2,12 +2,13 @@ from korean_rule_helper import JosaHelper
 from .pattern_rule import PatternRule
 from .errors import TemplateResolverError
 from ..tags import * 
+from ..context import Context
 
 class TemplateSolver:
     def __init__(self) -> None:
         self.josa_helper: JosaHelper = JosaHelper()
 
-    def solve(self, pattern_rule: PatternRule) -> str:
+    def solve(self, pattern_rule: PatternRule, context: Context) -> str:
         def _solve_list(tag_list: list[Tag]) -> str:
             holder: list[str] = []
             for tag in tag_list:
@@ -63,11 +64,19 @@ class TemplateSolver:
             elif isinstance(tag, WildCard):
                 raise TemplateResolverError('wildcard cannot be solved in child level', pattern_rule)
             elif isinstance(tag, Get):
-                return 'GET(TODO)'
+                val = context.get_memo(tag.key)
+                if val and isinstance(val, str):
+                    return val
+                elif tag.default:
+                    return tag.default
+                else:
+                    return f'Get(key={tag.key})'
             elif isinstance(tag, Set):
-                # TODO
-                return _solve_list(tag.child) 
+                solved = _solve_list(tag.child) 
+                context.set_memo(tag.key, solved)
+                return solved
             elif isinstance(tag, Think):
+                _solve_list(tag.child) # solve first
                 return ''
             else:
                 raise TemplateResolverError(f'solving tag {tag} is not supported', pattern_rule)

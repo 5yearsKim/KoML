@@ -118,6 +118,7 @@ class Blank(Tag):
 class Get(Tag):
     def __init__(self, attr: dict[str, str]) -> None:
         self.key: str = ''
+        self.default: str|None = None
         super().__init__(attr=attr)
 
     def __repr__(self) -> str:
@@ -132,5 +133,7 @@ class Get(Tag):
         for k, v in self.attr.items():
             if k == 'key':
                 self.key = v
+            elif k == 'default':
+                self.default = v
             else:
                 raise TagError(f'Set attribute {k}={v} not supported')

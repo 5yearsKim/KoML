@@ -63,6 +63,7 @@ class Resolver:
             for item in items:
                 if isinstance(item, RawTag):
                     raise KomlCheckError(f'tag <{tag}> found in wrong place', self.location)
+                # josa 
                 elif isinstance(item, str) and state == KomlState.IN_TEMPLATE:
                     words, is_jss = split_wildcards(item, JOSAS)
                     for word, is_js in zip(words, is_jss):
@@ -71,6 +72,7 @@ class Resolver:
                             processed.append(josa)
                         else:
                             processed.append(Text(word))
+                # wildcard 
                 elif isinstance(item, str):
                     words, is_wcs = split_wildcards(item, WILDCARDS)
                     for word, is_wc in zip(words, is_wcs):
@@ -83,9 +85,14 @@ class Resolver:
                     processed.append(item)
                 else:
                     raise KomlCheckError(f'tag <{tag}> is not supported', self.location)
+        # all items are tag, not str
         else:
             assert all([not isinstance(x, RawTag) for x in items])
             processed = items # type: ignore
+        ''' 
+        items all processed above - no more str or RawTag
+        processed is all tag
+        '''
         try :
             if tag == 'case':
                 follow: Follow|None = None
@@ -143,6 +150,10 @@ class Resolver:
                 return Set(processed, attr=attr)
             elif tag == 'think':
                 return Think(processed, attr=attr)
+            elif tag == 'func':
+                return Func(processed, attr=attr)
+            elif tag == 'arg':
+                return Arg(processed, attr=attr)
             else:
                 raise KomlCheckError(f'tag {tag} is not allowed', self.location)
         except TagError as e:

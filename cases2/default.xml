@@ -24,8 +24,8 @@
 
   <case id='like_1'>
     <pattern>
-      <li>너_x <blank pos='N'/> 좋아해_?? </li>
-      <li><blank pos='N'/> 좋아해_??</li>
+      <li>너_x <blank pos='NNG'/> 좋아해_?? </li>
+      <li><blank pos='NNG'/> 좋아해_??</li>
     </pattern>
     <template><think><set key='like'><blank/></set></think> 응ㅋㅋ 좋아하지</template>
   </case>
@@ -33,12 +33,20 @@
   <case>
     <follow cid='like_1'/>
     <pattern>
-      <li>왜?</li>
-      <li>왜 좋아해?</li>
-      <li>이유가 뭐야?</li>
-      <li>이유는?</li>
+      <li>왜_??</li>
+      <li>왜 좋아해_??</li>
+      <li>이유가 뭐야_??</li>
+      <li>이유는_??</li>
     </pattern>
     <template>음.. 그냥 <get key='like'/>_o 생각하면 기분이 좋아져ㅋㅋ</template>
+  </case>
+
+  <case>
+    <pattern>
+      <li>왜_??</li>
+      <li>왜 좋아해_??</li>
+    </pattern>
+    <template>왜는 무슨 왜야ㅋㅋ 별 이유 없어</template>
   </case>
 
 </koml>
