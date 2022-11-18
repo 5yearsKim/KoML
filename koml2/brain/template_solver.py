@@ -1,12 +1,15 @@
 from korean_rule_helper import JosaHelper
+import random
 from .pattern_rule import PatternRule
 from .errors import TemplateResolverError
 from ..tags import * 
 from ..context import Context
+from ..customize import CustomBag
 
 class TemplateSolver:
-    def __init__(self) -> None:
+    def __init__(self, custom_bag: CustomBag) -> None:
         self.josa_helper: JosaHelper = JosaHelper()
+        self.custom_bag: CustomBag = custom_bag 
 
     def solve(self, pattern_rule: PatternRule, context: Context) -> str:
         def _solve_list(tag_list: list[Tag]) -> str:
@@ -78,6 +81,23 @@ class TemplateSolver:
             elif isinstance(tag, Think):
                 _solve_list(tag.child) # solve first
                 return ''
+            elif isinstance(tag, Func):
+                func = self.custom_bag.get_func(tag.name)
+                if func:
+                    if func.is_var_arg and func.num_arg > len(tag.child):
+                        raise TemplateResolverError(f'number of <Arg> {len(tag.child)} for function={tag.name} should be greater than {func.num_arg} ', pattern_rule)
+                    if not func.is_var_arg and len(tag.child) != func.num_arg:
+                        raise TemplateResolverError(f'number of <Arg>, {len(tag.child)} for function={tag.name}, {func.num_arg}  not matching', pattern_rule)
+                    func_args = list(map(lambda x: _solve_list(x.child), tag.child)) # type: ignore
+                    return func(*func_args, context=context)
+                else:
+                    return f'Func(name={tag.name})'
+            elif isinstance(tag, Arg):
+                solved = _solve_list(tag.child)
+                return solved
+            elif isinstance(tag, Random):
+                tem_picked = random.choice(tag.child)
+                return _solve_single(tem_picked)
             else:
                 raise TemplateResolverError(f'solving tag {tag} is not supported', pattern_rule)
         template = pattern_rule.template.child

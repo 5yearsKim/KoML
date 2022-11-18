@@ -1,7 +1,7 @@
 
 funcs = {}
 
-def show_date(*args, context=None):
+def show_date(context=None):
     import time
     tick = time.localtime()
     h, m = tick.tm_hour, tick.tm_min
@@ -12,4 +12,5 @@ def show_date(*args, context=None):
     else:
         am_pm = '오전'
     return f'{am_pm} {h}시 {m}분'
+
 funcs['show_date'] = show_date

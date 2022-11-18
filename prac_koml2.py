@@ -1,6 +1,6 @@
 from koml2.parser import create_parser
-from koml2 import KomlBot, CustomFunction
-from .customs import funcs
+from koml2 import KomlBot, CustomBag
+from customs import funcs
 # from koml import Kernel, Context, CustomFunction
 # from customs import funcs
 
@@ -9,8 +9,8 @@ from .customs import funcs
 
 if __name__ == '__main__':
     from glob import glob
-    custom_function = CustomFunction(funcs=funcs)
-    bot = KomlBot(custom_function=custom_function)
+    custom_bag = CustomBag(funcs=funcs)
+    bot = KomlBot(custom_bag=custom_bag)
     files = glob('cases2/*.xml', recursive=True)
     # print(files)
     # kernel.remember('brain.pickle')

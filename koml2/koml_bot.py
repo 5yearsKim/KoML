@@ -2,16 +2,13 @@ import xml
 from .parser import create_parser
 from .brain import PatternMatcher, TemplateSolver
 from .context import Context
-from .customize import CustomFunction
+from .customize import CustomBag
 
 class KomlBot:
-    def __init__(self, custom_function:CustomFunction|None=None) -> None:
+    def __init__(self, custom_bag:CustomBag|None=None) -> None:
         self.matcher: PatternMatcher = PatternMatcher()
-        self.solver: TemplateSolver = TemplateSolver()
-        if custom_function:
-            self.custom_function = custom_function
-        else:
-            self.custom_function = CustomFunction()
+        self.custom_bag: CustomBag = custom_bag or CustomBag()
+        self.solver: TemplateSolver = TemplateSolver(self.custom_bag)
 
     def learn(self, files: list[str], save_path: str | None =None) -> None:
         for file in files:

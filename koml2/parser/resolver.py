@@ -17,7 +17,6 @@ class Resolver:
     def location(self) -> FileLoc:
         return self.get_loc() 
 
-
     def _raw_tag_at(self, tag: str) -> int:
         for i in range(len(self.stack) -1, -1, -1):
             item = self.stack[i]
@@ -39,9 +38,6 @@ class Resolver:
         case: Case = self.stack[0]
         self.stack.clear()
         return case
-
-
-
     
     def resolve(self, tag: str, state: KomlState) -> None:
         tag_idx = self._raw_tag_at(tag)
@@ -129,8 +125,17 @@ class Resolver:
                     pat_item = PatItem(processed)
                     return Pattern([pat_item], attr=attr)
             elif tag == 'template':
-                tem_item = TemItem(processed)
-                return Template(tem_item, attr=attr)
+                # Random
+                if any([isinstance(x, Random) for x in processed]):
+                    assert len(processed) == 1 
+                    assert isinstance(processed[0], Random)
+                    return Template(child=processed[0]) 
+                # TemItem
+                else:
+                    tem_item = TemItem(processed)
+                    return Template(tem_item, attr=attr)
+            elif tag == 'random':
+                return Random(processed, attr=attr)
             # processing leafs
             elif tag == 'blank'  and state in [KomlState.IN_FOLLOW, KomlState.IN_PATTERN]:
                 return PatBlank(attr=attr)

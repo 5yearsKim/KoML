@@ -1,5 +1,5 @@
 from .abstracts import Tag
-from .items import PatItem, TemItem
+from .items import PatItem, TemItem, Random
 from .errors import TagError
 from .utils import csv2list
 
@@ -43,8 +43,8 @@ class Pattern(Tag):
 
 
 class Template(Tag):
-    def __init__(self, child: TemItem, attr: dict[str, str]={}) -> None :
-        self.child: TemItem = child
+    def __init__(self, child: Random|TemItem, attr: dict[str, str]={}) -> None :
+        self.child: TemItem|Random = child
         super().__init__(attr=attr)
 
     def __repr__(self) -> str:

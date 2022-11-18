@@ -42,7 +42,8 @@ class Func(Node):
         for k, v in self.attr.items():
             if k == 'name':
                 self.name = v
-            raise TagError(f'Func attribute {k}={v} not supported')
+            else:
+                raise TagError(f'Func attribute {k}={v} not supported')
     
     def _check(self) -> None:
         if not self.name:

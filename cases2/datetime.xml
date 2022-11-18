@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE xml>
+
+<koml>
+  <case>
+    <pattern>
+      <li>지금 몇시야_??</li>
+      <li>지금 몇시인지 알아_??</li>
+      <li>지금 몇신지 알아_??</li>
+      <li>지금 몇시인지 알려줘</li>
+      <li>지금 몇시게_??</li>
+    </pattern>
+    <template>음.. 지금 <func name='show_date'/>!</template>
+  </case>
+</koml>

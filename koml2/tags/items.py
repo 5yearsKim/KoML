@@ -1,4 +1,4 @@
-from .abstracts import Node 
+from .abstracts import Node, Tag
 from .errors import TagError
 from .leafs import *
 from .nodes import *
@@ -34,3 +34,15 @@ class TemItem(Node):
 
     
 
+class Random(Node):
+    def __init__(self, child: list[Tag], attr: dict[str, str]={}):
+        super().__init__(child, attr=attr)
+
+    def _check(self) -> None:
+        if any(not isinstance(x, TemItem) for x in self.child):
+            raise TagError(f'all children in Random should be <li>')
+
+    def _decode_attr(self) -> None:
+        for k, v in self.attr.items():
+            raise TagError(f'Random attribute {k}={v} not supported')
+        

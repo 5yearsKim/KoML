@@ -2,7 +2,7 @@ import textwrap
 from .abstracts import Tag, Node
 from .sections import Follow, Pattern, Template
 from .leafs import *
-from .items import TemItem, PatItem
+from .items import TemItem, PatItem, Random
 from .errors import TagError
 
 class Case(Tag):
@@ -40,6 +40,9 @@ class Case(Tag):
         child = self.template.child
         if isinstance(child, TemItem):
             tem_items.append(child)
+        elif isinstance(child, Random):
+            random_tag = child
+            tem_items.extend(random_tag.child) # type: ignore
         else:
             raise TagError(f'checking for {child} not implemented yet..')
 
