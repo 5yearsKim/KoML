@@ -85,10 +85,24 @@ class Resolver:
         else:
             assert all([not isinstance(x, RawTag) for x in items])
             processed = items # type: ignore
+
+
         ''' 
         items all processed above - no more str or RawTag
         processed is all tag
         '''
+
+        def _process_template(processed: list[Tag]) -> TemCandidate:
+            # Random
+            if any([isinstance(x, Random) for x in processed]):
+                assert len(processed) == 1 
+                assert isinstance(processed[0], Random)
+                return TemCandidate(processed[0])
+            # TemItem
+            else:
+                tem_item = TemItem(processed)
+                return TemCandidate(tem_item)
+
         try :
             if tag == 'case':
                 follow: Follow|None = None
@@ -125,17 +139,13 @@ class Resolver:
                     pat_item = PatItem(processed)
                     return Pattern([pat_item], attr=attr)
             elif tag == 'template':
-                # Random
-                if any([isinstance(x, Random) for x in processed]):
-                    assert len(processed) == 1 
-                    assert isinstance(processed[0], Random)
-                    return Template(child=processed[0]) 
-                # TemItem
-                else:
-                    tem_item = TemItem(processed)
-                    return Template(tem_item, attr=attr)
+                tem_candidate = _process_template(processed)
+                return Template(tem_candidate, attr=attr)
             elif tag == 'random':
-                return Random(processed, attr=attr)
+                return Random(processed, attr=attr) #type: ignore
+            elif tag == 'ri':
+                tem_candidate = _process_template(processed)
+                return Ri(tem_candidate, attr=attr)
             # processing leafs
             elif tag == 'blank'  and state in [KomlState.IN_FOLLOW, KomlState.IN_PATTERN]:
                 return PatBlank(attr=attr)
@@ -147,8 +157,6 @@ class Resolver:
             elif tag == 'li':
                 if state in [KomlState.IN_FOLLOW, KomlState.IN_PATTERN]:
                     return PatItem(processed)
-                elif state in [KomlState.IN_TEMPLATE]:
-                    return TemItem(processed)
                 else:
                     raise KomlCheckError(f'<li> tag is not applicable for state {state}', self.location)
             elif tag == 'set':
@@ -156,7 +164,7 @@ class Resolver:
             elif tag == 'think':
                 return Think(processed, attr=attr)
             elif tag == 'func':
-                return Func(processed, attr=attr)
+                return Func(processed, attr=attr) # type: ignore
             elif tag == 'arg':
                 return Arg(processed, attr=attr)
             else:
@@ -164,7 +172,6 @@ class Resolver:
         except TagError as e:
             raise KomlCheckError(f'Tag Error: {e}', self.location)
 
-        
         
 
 

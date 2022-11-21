@@ -30,7 +30,7 @@ class KomlHandler(ContentHandler):
         elif self.state == KomlState.IN_PATTERN:
             allowed = ['li', 'blank']
         elif self.state == KomlState.IN_TEMPLATE:
-            allowed = ['random', 'li', 'blank', 'set', 'get', 'think', 'func', 'arg', 'switch']
+            allowed = ['random', 'ri', 'blank', 'set', 'get', 'think', 'func', 'arg', 'switch']
         # elif self.state == KomlState.IN_SWITCH:
         #     allowed = ['pivot', 'scase', 'default', 'random', 'li', 'blank', 'set', 'get' , 'think', 'func', 'arg']
         if tag not in allowed:

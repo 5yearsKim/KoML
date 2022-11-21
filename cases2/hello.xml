@@ -8,8 +8,8 @@
     </pattern>
     <template>
       <random>
-        <li>안녕~~~</li>
-        <li>반가워!</li>
+        <ri>안녕~~~</ri>
+        <ri>반가워!</ri>
       </random>
     </template>
   </case>

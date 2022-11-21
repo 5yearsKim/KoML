@@ -1,6 +1,6 @@
 import textwrap
-from .abstracts import Tag, Node
-from .sections import Follow, Pattern, Template
+from .abstracts import Tag
+from .sections import Follow, Pattern, Template, TemCandidate
 from .leafs import *
 from .items import TemItem, PatItem, Random
 from .errors import TagError
@@ -37,20 +37,25 @@ class Case(Tag):
         key_set: set[str] = set()
         idx_set: set[int] = set()
         tem_items: list[TemItem] = []
-        child = self.template.child
-        if isinstance(child, TemItem):
-            tem_items.append(child)
-        elif isinstance(child, Random):
-            random_tag = child
-            tem_items.extend(random_tag.child) # type: ignore
-        else:
-            raise TagError(f'checking for {child} not implemented yet..')
+
+        def _tem_item_search(tem_cand: TemCandidate) -> None:
+            if isinstance(tem_cand.child, TemItem):
+                tem_items.append(tem_cand.child)
+            elif isinstance(tem_cand.child, Random):
+                # TODO
+                pass
+            else:
+                raise TagError(f'checking for {tem_cand.child} not implemented yet..')
+
+        _tem_item_search(self.template.child)             
 
         def _blank_search(tag: Tag) -> None:
             ''' search all blank key and idx in template '''
-            if isinstance(tag, Node):
-                for t in tag.child:
-                    _blank_search(t)
+            if hasattr(tag, 'child') and isinstance(tag.child, list):
+                for t in tag.child: 
+                    return _blank_search(t)
+            elif hasattr(tag, 'child') and tag.child is not None: 
+                return _blank_search(tag.child)
             else:
                 if isinstance(tag, Blank):
                     if tag.key:
@@ -58,7 +63,8 @@ class Case(Tag):
                     if tag.idx:
                         idx_set.add(tag.idx)
                 else:
-                    return
+                    return None
+                    
         for tem_item in tem_items:
             _blank_search(tem_item)
 

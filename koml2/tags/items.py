@@ -1,26 +1,35 @@
-from .abstracts import Node, Tag
+from .abstracts import Tag
 from .errors import TagError
 from .leafs import *
 from .nodes import *
 
-class PatItem(Node):
+class PatItem(Tag):
     def __init__(self, child: list[Tag]):
-        super().__init__(child, attr={})
+        self.child: list[Tag] = child
+        super().__init__(attr={})
     
     def __repr__(self) -> str:
         return f'PatItem({self.child})'
     
     def _check(self) -> None:
+        prev_item: Tag|None = None
         for item in self.child:
             if type(item) not in [Text, WildCard, PatBlank]:
                 raise TagError(f'{type(item)} is not allowed in Pattern')
+            if isinstance(prev_item, PatBlank) and isinstance(item, WildCard):
+                raise TagError(f'Wildcard({item.val}) is not allowed to follow <blank>.. use pos/npos instead')
+            
+            prev_item = item
 
     def _decode_attr(self) -> None:
         pass
 
-class TemItem(Node):
+
+
+class TemItem(Tag):
     def __init__(self, child: list[Tag]):
-        super().__init__(child, attr={})
+        self.child: list[Tag] = child
+        super().__init__(attr={})
 
     def __repr__(self) -> str:
         return f'TemItem({self.child})'
@@ -30,19 +39,5 @@ class TemItem(Node):
 
     def _decode_attr(self) -> None:
         pass
-
-
     
 
-class Random(Node):
-    def __init__(self, child: list[Tag], attr: dict[str, str]={}):
-        super().__init__(child, attr=attr)
-
-    def _check(self) -> None:
-        if any(not isinstance(x, TemItem) for x in self.child):
-            raise TagError(f'all children in Random should be <li>')
-
-    def _decode_attr(self) -> None:
-        for k, v in self.attr.items():
-            raise TagError(f'Random attribute {k}={v} not supported')
-        

@@ -1,6 +1,7 @@
 from .abstracts import Tag
-from .items import PatItem, TemItem, Random
+from .items import PatItem  
 from .errors import TagError
+from .tem_candidate import TemCandidate
 from .utils import csv2list
 
 class Follow(Tag):
@@ -42,9 +43,10 @@ class Pattern(Tag):
             raise TagError(f'<Pattern> attribute {k}={v} not supported')
 
 
+
 class Template(Tag):
-    def __init__(self, child: Random|TemItem, attr: dict[str, str]={}) -> None :
-        self.child: TemItem|Random = child
+    def __init__(self, child: TemCandidate, attr: dict[str, str]={}) -> None :
+        self.child: TemCandidate = child
         super().__init__(attr=attr)
 
     def __repr__(self) -> str:
@@ -56,4 +58,5 @@ class Template(Tag):
     def _decode_attr(self) -> None:
         for k, v in self.attr.items():
             raise TagError(f'<Template> attribute {k}={v} not supported')
-
+        
+    

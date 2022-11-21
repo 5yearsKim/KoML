@@ -20,18 +20,20 @@ class TemplateSolver:
                         holder.pop()
                     if holder:
                         word = holder[-1].strip()
-                        if tag.val == '_s':
+                        if tag.val == '_i':
                             js_type =  'I_GA'
-                        elif tag.val == '_c':
-                            js_type = 'I_GA'
-                        elif tag.val == '_x':
+                        elif tag.val == '_eun':
                             js_type = 'EUN_NEUN'
-                        elif tag.val == '_o':
+                        elif tag.val == '_gwa':
+                            js_type = 'GWA_WA'
+                        elif tag.val == '_eul':
                             js_type = 'EUL_REUL'
-                        elif tag.val == '_ee':
-                            js_type = 'I_X'
-                        elif tag.val == '_ya':
+                        elif tag.val == '_a':
                             js_type = 'A_YA'
+                        elif tag.val == '_euro':
+                            js_type = 'EURO_RO'
+                        elif tag.val == '_ix':
+                            js_type = 'I_X'
                         else:
                             raise TemplateResolverError(f'josa {tag.val} not supported', pattern_rule)
                         word_josa = self.josa_helper.add_josa(word, js_type)
@@ -64,8 +66,8 @@ class TemplateSolver:
                         return picked if picked else ''
                     except IndexError as e:
                         raise TemplateResolverError(str(e), pattern_rule)
-            elif isinstance(tag, WildCard):
-                raise TemplateResolverError('wildcard cannot be solved in child level', pattern_rule)
+            elif isinstance(tag, Josa):
+                raise TemplateResolverError('josa cannot be solved in child level', pattern_rule)
             elif isinstance(tag, Get):
                 val = context.get_memo(tag.key)
                 if val and isinstance(val, str):

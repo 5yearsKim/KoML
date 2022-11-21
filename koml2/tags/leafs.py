@@ -12,7 +12,8 @@ class Text(Tag):
         return f'T({self.val})'
 
     def _check(self) -> None:
-        pass
+        if '_' in self.val:
+            print(f'warning.. potential unprocessed wildcard included in {self.val}..')
 
     def _decode_attr(self) -> None:
         pass
@@ -22,10 +23,6 @@ class WildCard(Tag):
     def __init__(self, val: str) -> None:
         self.val: str = val
         super().__init__(attr={})
-
-    @property
-    def optional(self) -> bool :
-        return True if self.val.endswith('?') else False
 
     def __repr__(self) -> str:
         return f'WC({self.val})'

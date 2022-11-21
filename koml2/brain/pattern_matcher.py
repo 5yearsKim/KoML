@@ -12,9 +12,12 @@ class PatternMatcher:
     def add(self, case: Case) -> None:
         pattern_rules = PatternRule.from_case(case)
         self.patterns.extend(pattern_rules)
+    
+    def _rule_match(self, sentence: str, rule: list[Rule]) -> tuple[bool, list[str]]:
+        ksent = KoreanSentence(sentence)
+        return self.ruler.match(ksent, rule)
 
     def match(self, sentence: str, context: Context) -> PatternRule|None:
-        ksent = KoreanSentence(sentence)
         holder: list[PatternRule] = []
 
         for prule in self.patterns:
@@ -26,20 +29,19 @@ class PatternMatcher:
                     continue
             # follow rules : if not matching the follow -> give up case
             if prule.follow_rules:
-                def match_follow(ksent: KoreanSentence, follow_rules: list[list[Rule]]) -> bool:
+                def match_follow(sentence: str, follow_rules: list[list[Rule]]) -> bool:
                     for rule in follow_rules:
-                        is_match, _ = self.ruler.match(ksent, rule)
+                        is_match, _ = self._rule_match(sentence, rule)
                         if is_match:
                             return True
                     return False
                 if not context.prev_chat:
                     continue
-                prev_ans = KoreanSentence(context.prev_chat.answer)
-                is_match = match_follow(prev_ans, prule.follow_rules)
+                is_match = match_follow(context.prev_chat.answer, prule.follow_rules)
                 if not is_match:
                     continue
             # check pattern
-            is_match, args = self.ruler.match(ksent, prule.pattern)
+            is_match, args = self._rule_match(sentence, prule.pattern)
             if is_match:
                 assert len(prule.args) == len(args)
                 for prule_arg, arg in zip(prule.args, args):
