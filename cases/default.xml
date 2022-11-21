@@ -4,53 +4,62 @@
 
   <case>
     <pattern>ㅋ</pattern>
-    <subpat>ㅎ</subpat>
+    <template>왜웃어ㅋㅋㅋㅋ</template>
+
+  </case>
+
+  <case>
+    <pattern>
+      <li>너는 <blank key='target' pos='NN'/> 좋아 <blank pos='NN'/> 좋아_sf</li>
+      <li><blank pos='NNG'/>랑 <blank key='target'/> 중에 뭐가 * 좋아_sf</li>
+    </pattern>
+    <template>나는 <blank key='target'/>_eul 더 좋아해!</template>
+  </case>
+
+  <case>
+    <pattern>
+      <li>너_j 여자친구 있_e_s</li>
+      <li>너_j 여친 있_e_s</li>
+    </pattern>
     <template>
       <random>
-        <li>왜웃어ㅋㅋㅋㅋ</li>
-        <li>웃기지ㅋㅋㅋㅋ</li>
-        <li>ㅋㅋ왜ㅋㅋㅋ</li>
+        <ri>그건 쌈싸먹는거야?</ri>
+        <ri>응 심심이?</ri>
       </random>
     </template>
   </case>
 
-  <case>
-    <pattern>너는 <star/>_s! 좋아 <star/>_s! 좋아_?</pattern>
-    <subpat><star idx='2' pos='NNG'/>랑 <star idx='1'/> 중에 뭐가 * 좋아?</subpat>
-    <template>나는 <star idx='1'/>_o 더 좋아해!</template>
-  </case>
 
+  <case>
+    <pattern>내 이름은 <blank pos='NN'/></pattern>
+    <template>안녕 <set key='username'><blank/></set>_a! 만나서 반가워ㅋㅋ</template>
+  </case>
 
   <case id='like_1'>
-    <pattern>너_x <star/> 좋아해? </pattern>
-    <subpat>
-      <li><star/> 좋아해?</li>
-      <li><star/> 좋아?</li>
-    </subpat>
-    <template><think><set name='like'><star/></set></think> 응ㅋㅋ 좋아하지</template>
+    <pattern>
+      <li>너_j <blank pos='NNG'/> 좋아해_sf </li>
+      <li><blank pos='NNG'/> 좋아해_sf</li>
+    </pattern>
+    <template><think><set key='like'><blank/></set></think> 응ㅋㅋ 좋아하지</template>
   </case>
 
   <case>
-    <follow cid='like_1'>* 좋아하지</follow>
-    <pattern>왜?</pattern>
-    <subpat>
-      <li>왜 좋아해?</li>
-      <li>이유가 뭐야?</li>
-      <li>이유는?</li>
-    </subpat>
-    <template>음.. 그냥 <get name='like'/>_o 생각하면 기분이 좋아져ㅋㅋ</template>
-  </case>
-
-
-  <case>
-    <pattern>넌 * 좋아해?</pattern>
-    <template>응 엄청 좋아해!</template>
+    <follow cid='like_1'/>
+    <pattern>
+      <li>왜_sf</li>
+      <li>왜 좋아해_sf</li>
+      <li>이유가 뭐야_sf</li>
+      <li>이유는_sf</li>
+    </pattern>
+    <template>음.. 그냥 <get key='like'/>_eul 생각하면 기분이 좋아져ㅋㅋ</template>
   </case>
 
   <case>
-    <pattern>넌 똥 좋아해?</pattern>
-    <template>똥을 누가 좋아해ㅋㅋㅋ</template>
+    <pattern>
+      <li>왜_sf</li>
+      <li>왜 좋아해_sf</li>
+    </pattern>
+    <template>왜는 무슨 왜야ㅋㅋ 별 이유 없어</template>
   </case>
-
 
 </koml>

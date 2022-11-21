@@ -1,18 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE xml>
 <koml>
-
-
   <case>
-    <pattern>내 이름은 <star pos='NN'/></pattern>
-    <template>안녕 <set name='username'><star/></set>! 만나서 반가워ㅋㅋ</template>
+    <pattern>내 이름은 <blank pos='NN'/></pattern>
+    <template>안녕 <set key='username'><blank/></set>! 만나서 반가워ㅋㅋ</template>
   </case>
 
   <case id = 'know_username'>
-    <pattern>* 내 이름 뭔지 알아_?</pattern>
-    <subpat>
-      <li>* 내 이름 알아?</li>
-    </subpat>
+    <pattern>
+      <li>* 내 이름_j 뭔지 알아_s</li>
+      <li>* 내 이름_j 알아_s</li>
+    </pattern>
     <template>
       <switch>
         <pivot><func name='know'><arg>username</arg></func></pivot>
@@ -24,21 +22,21 @@
 
   <case>
     <follow cid='know_username'>응 *</follow>
-    <pattern>* 뭔데_?</pattern>
-    <subpat>
-      <li>뭐야_?</li>
+    <pattern>
+      <li>* 뭔데_s</li>
+      <li>뭐야_s</li>
       <li>* 말해봐</li>
       <li>* 알려줘</li>
-    </subpat>
-    <template><get name='username'/>_i잖아ㅋㅋ 날 뭘로 보고</template>
+    </pattern>
+    <template><get key='username'/>_ix잖아ㅋㅋ 날 뭘로 보고</template>
   </case>
 
   <case>
     <follow cid='know_username'>아니 *</follow>
-    <pattern>내 이름은 <star pos='NN'/></pattern>
-    <subpat>
-      <li><star pos='NN'/></li>
-    </subpat>
-    <template>아 오키ㅋㅋ 이제 기억할게! <think><set name='username'><star/></set></think></template>
+    <pattern>
+      <li>내 이름은 <blank pos='NN'/></li>
+      <li><blank pos='NN'/></li>
+    </pattern>
+    <template>아 오키ㅋㅋ 이제 기억할게! <think><set key='username'><blank/></set></think></template>
   </case>
 </koml>

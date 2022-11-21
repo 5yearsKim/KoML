@@ -1,4 +1,5 @@
 from korean_word_relay import WordRelay
+from koml import Context
 import re
 
 funcs = {}
@@ -6,7 +7,7 @@ funcs = {}
 word_relay = WordRelay(words_path='customs/killing_words.txt', debug_print=False)
 hangul = re.compile('[^ ㄱ-ㅣ가-힣]+')
 
-def state_word_relay(word: str, *args, context=None):
+def state_word_relay(word: str, context: Context|None=None) -> str:
     word = hangul.sub('', word)
 
     if len(word) < 2:
@@ -38,7 +39,7 @@ def state_word_relay(word: str, *args, context=None):
     return 'no_found'
 funcs['state_word_relay'] = state_word_relay
 
-def get_word_relay(word :str, *args, context=None):
+def get_word_relay(word :str, context: Context|None=None) -> str:
     word = hangul.sub('', word)
     next_word = word_relay.get_next(word, log_history=True)
     if not next_word:

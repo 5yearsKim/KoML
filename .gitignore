@@ -19,6 +19,9 @@ var/
 *.egg
 
 # custom
+cases/
+customs/
+brain_pkl/
 korean_rule_helper
 korean_rule_helper/
 # test*

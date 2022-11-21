@@ -1,14 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE xml>
+
 <koml>
   <case>
-    <pattern>지금 몇시야_?</pattern>
-    <subpat>
-      <li>지금 몇시인지 알아?</li>
-      <li>지금 몇신지 알아?</li>
+    <pattern>
+      <li>지금 몇시야_sf</li>
+      <li>지금 몇시인지 알아_sf</li>
+      <li>지금 몇신지 알아_sf</li>
       <li>지금 몇시인지 알려줘</li>
-      <li>지금 몇시게</li>
-    </subpat>
+      <li>지금 몇시게_sf</li>
+    </pattern>
     <template>음.. 지금 <func name='show_date'/>!</template>
   </case>
 </koml>
