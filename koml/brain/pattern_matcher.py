@@ -21,7 +21,8 @@ class PatternMatcher:
         prev_bot_ans : KoreanSentence| None = None
         if context.prev_chat:
             prev_bot_ans = KoreanSentence(context.prev_chat.answer)
-            prev_bot_ans = ppcsr.process(prev_bot_ans)
+            # no preprocessing for prev bot answer
+            # prev_bot_ans = ppcsr.process(prev_bot_ans)
         ksent = KoreanSentence(sentence)
         ksent = ppcsr.process(ksent)
         

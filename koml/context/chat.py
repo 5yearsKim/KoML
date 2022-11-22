@@ -15,7 +15,7 @@ class Chat:
     def to_json(self) -> dict[str, str]:
         obj = {'question': self.question, 'answer': self.answer}
         if self.cid:
-            obj.set('cid', self.cid)
+            obj['cid'] = self.cid
         return obj
 
     @staticmethod

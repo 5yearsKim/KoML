@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from korean_rule_helper import KoreanSentence, Rule
+from korean_rule_helper import KoreanSentence
 
 class Preprocessor(ABC):
     def __init__(self) -> None:
@@ -16,26 +16,23 @@ class DefaultPreprocessor(Preprocessor):
     def process(self, sentence: KoreanSentence) -> KoreanSentence:
         return sentence
 
-class RemovePosPreprocessor(Preprocessor):
-    def __init__(self, npos: list[str]=[]) -> None:
-        self.npos: list[str] = npos
+class FilterPreprocessor(Preprocessor):
+    def __init__(self, filter_words: list[str]=[]) -> None:
+        self.filter_words: list[str] = filter_words
         super().__init__()
 
     def process(self, sentence: KoreanSentence) -> KoreanSentence:
-        rule = Rule(npos=self.npos)
-        holder = []
         # too short -> not processing
         if len(sentence.tags) <= 2:
             return sentence
+        holder = []
         for tag in sentence.tags:
-            if tag.surface.isspace() and holder and holder[-1].surface.isspace():
+            if holder and holder[-1].surface.isspace() and tag.surface.isspace():
                 continue
-            judge = rule.judge_tag(tag)
-            if judge:
-                holder.append(tag)
-            # 왜 is an exception
-            elif tag.surface == '왜':
-                holder.append(tag)
+            if tag.surface in self.filter_words:
+                continue
+            holder.append(tag)
         sentence.tags = holder
+        print(holder)
         return sentence
 
