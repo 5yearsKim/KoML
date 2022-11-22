@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE xml>
+<koml>
+  <!-- section/case -->
+  <case>
+    <pattern>살쪘어</pattern>
+    <template>누가 살쪄!</template>
+  </case>
+
+
+  <!-- section/pattern -->
+  <case>
+    <pattern>
+      <li>졸리다</li>
+      <li>잠온다</li>
+    </pattern>
+    <template>졸리면 자라</template>
+  </case>
+
+  <!-- section/wildcard -->
+  <case>
+    <pattern>국힙 원탑은 *</pattern>
+    <template>원탑은 싸이 아님?</template>
+  </case>
+
+  <case>
+    <pattern>너_j 꿈_j 뭐_e</pattern>
+    <template>해적왕</template>
+  </case>
+
+  <!-- follow -->
+
+  <case>
+    <!-- follow 안에는 패턴을 적어넣을 수 있어요 -->
+    <follow>*해적왕*</follow>
+    <pattern>왜_sf</pattern>
+    <template>샹크스랑 약속했거든</template>
+  </case>
+
+
+  <case id='good_singer'>
+    <pattern>너_j 노래 잘해_s</pattern>
+    <template>기가 막히지</template>
+  </case>
+
+  <case>
+    <follow cid='good_singer'/>
+    <pattern>
+      <li>*해봐*</li>
+      <li>*불러봐*</li>
+    </pattern>
+    <template>언더에선 안부름ㅎ</template>
+  </case>
+
+</koml>

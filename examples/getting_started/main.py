@@ -6,6 +6,6 @@ sys.path.append('../../')
 # main.py
 from koml import KomlBot
 
-bot = KomlBot()
-bot.learn(['koml.xml'])
+bot = KomlBot(debug=True)
+bot.learn(['getting_started.xml'])
 bot.converse()

@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE xml>
+<koml>
+  <!-- tags/blank-->
+  <case>
+    <pattern>내 이름은 <blank pos='N'/></pattern>
+    <template>안녕 <blank/>! 만나서 반가워ㅋㅋ</template>
+  </case>
+
+
+  <!-- tags/blank-->
+  <case>
+    <pattern>너_j <blank pos='N'/> 좋아 <blank pos='N'/> 좋아_sf</pattern>
+    <template>나는 <blank idx='2'/> 보다는 <blank idx='1'/> 좋은듯</template>
+  </case>
+
+
+  <case>
+    <pattern>너_j <blank pos='N'/> 랑 <blank pos='N' key='target'/> 중 뭐_j 좋아_sf</pattern>
+    <template>나는 <blank key='target'/>! </template>
+  </case>
+
+  <!-- set/get -->
+  <case>
+    <pattern>내가 제일 좋아하는 음식은 <blank pos='N'/></pattern>
+    <template>너 <set key='favorite_food'><blank/></set> 좋아하는구나.. 기억할게!</template>
+  </case>
+
+
+  <case>
+    <pattern>* 제일 좋아하는 음식_j 뭔지 알아_sf</pattern>
+    <template>알지. <get key='favorite_food'/>잖아ㅋㅋ</template>
+  </case>
+
+  <!-- think -->
+  <case>
+    <pattern>내 취미는 <blank npos='J, EF'/></pattern>
+    <template><think><set key='hobby'><blank/></set></think>안물안궁</template>
+  </case>
+
+  <case>
+    <pattern>내 취미_j 뭐*</pattern>
+    <template><get key='hobby'/>라매ㅋㅋ</template>
+  </case>
+
+</koml>
+
+

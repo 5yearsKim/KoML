@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE xml>
+<koml>
+  <!-- josa wildcard-->
+  <case>
+    <pattern><blank pos="N"/>먹으러 갈래?</pattern>
+    <template>누가 <blank/>_eul 먹냐. 난 <blank/>_eun 별로ㅎ. </template>
+  </case>
+
+  <!-- random  -->
+  <case>
+    <pattern>
+      <li>안녕</li>
+      <li>하이</li>
+    </pattern>
+    <template>
+      <random>
+        <ri>안녕~~~</ri>
+        <ri>반가워!</ri>
+        <ri>인사 잘한다</ri>
+      </random>
+    </template>
+  </case>
+
+  <case>
+    <pattern>로또</pattern>
+    <template>
+      <random>
+        <ri weight='3'>꽝</ri>
+        <ri weight='1'>당첨!</ri>
+      </random>
+    </template>
+  </case>
+
+  <case>
+    <!-- 형용사만 추출  -->
+    <pattern>오늘 날씨가 <blank pos='VA'/></pattern>
+    <template>
+      <switch>
+        <pivot><blank/></pivot>
+        <scase pivot='좋'>커플들 다 뒤져라</scase>
+        <scase pivot='나쁘'>놀러갈라 그랬는데 집에서 쉬어야겠네</scase>
+        <scase pivot='흐리'>이거 또 미세먼지 아냐?</scase>
+        <default>그렇네 날씨가 <blank/>네</default>
+      </switch>
+    </template>
+  </case>
+
+</koml>
+
+

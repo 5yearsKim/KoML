@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE xml>
+<koml>
+  <case>
+    <pattern>
+      <li>너_j 여자친구 없_e_s</li>
+      <li>너_j 여자친구 있_e_s</li>
+    </pattern>
+    <template>그건 뭐 쌈싸먹는거임?</template>
+  </case>
+</koml>
+

@@ -2,14 +2,15 @@ from korean_word_relay import WordRelay
 from koml import Context
 import re
 
-funcs = {}
-
-word_relay = WordRelay(words_path='customs/killing_words.txt', debug_print=False)
+word_relay = WordRelay()
 hangul = re.compile('[^ ㄱ-ㅣ가-힣]+')
 
 def state_word_relay(word: str, context: Context|None=None) -> str:
+    ''' 내 답안이 문제가 없는 답변안인지 확인 '''
+    # 한글이 아닌 글자 모두 제거
     word = hangul.sub('', word)
 
+    # 답변은 최소 2글자 이상!
     if len(word) < 2:
         return 'short'
 
@@ -18,12 +19,12 @@ def state_word_relay(word: str, context: Context|None=None) -> str:
         holder.append(item.answer.strip())
         holder.append(item.question.strip())
     history = holder
-    # print('*'*50)
-    # print(word, history)
-    # print(word in history)
+
+    # 앞선 문맥에 중복된 단어 발견
     if word in history:
         return 'duplicated'
 
+    # 앞에 단어와 내 답변이 끝말잇기 되지 않음
     if not history:
         return 'no_match'
     prev_word = hangul.sub('', history[0])
@@ -32,20 +33,19 @@ def state_word_relay(word: str, context: Context|None=None) -> str:
     is_continue = word_relay.check_continue(prev_word, word)
     if not is_start and not is_continue:
         return 'no_match'
-    
+
     next_word = word_relay.get_next(word, log_history=False)
+    # koml 봇이 대답할 수 있는 단어 찾음/못찾음
     if next_word:
         return 'found'
-    return 'no_found'
-funcs['state_word_relay'] = state_word_relay
+    else:
+        return 'no_found'
 
 def get_word_relay(word :str, context: Context|None=None) -> str:
+    ''' koml 봇 끝말잇기 단어 리턴 '''
     word = hangul.sub('', word)
     next_word = word_relay.get_next(word, log_history=True)
-    if not next_word:
-        return '멍청이ㅋㅋㅋ'
     return next_word
-funcs['get_word_relay'] = get_word_relay
 
 if __name__ == '__main__':
 

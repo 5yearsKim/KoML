@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE xml>
+<koml>
+  <case>
+    <pattern>
+      <li>넌 이름_j 뭐야_sf</li>
+      <li>이름_j 뭐야_sf</li>
+      <li>너_j 이름_j 뭐야_sf</li>
+      <li>너_j 이름_j 알려줄래_sf</li>
+      <li>너_j 이름_j 알려줘</li>
+      <li>이름_j 알려줄래_sf</li>
+    </pattern>
+    <template>내 이름은 <get key='botname'/>_ix야.</template>
+  </case>
+</koml>
