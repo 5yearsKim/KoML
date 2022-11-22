@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE xml>
+<koml>
+  <case>
+    <pattern>너_j 이름_j 뭐야?</pattern>
+    <template>내 이름은 코엠엘챗봇이야!</template>
+  </case>
+</koml>

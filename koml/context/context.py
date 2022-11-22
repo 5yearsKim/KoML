@@ -1,3 +1,4 @@
+from __future__ import annotations
 from typing import Any
 import textwrap
 from .chat import Chat
@@ -43,7 +44,7 @@ Context:
         return obj
 
     @staticmethod
-    def from_json(json: dict[str, Any]) -> None:
+    def from_json(json: dict[str, Any]) -> Context:
         context = Context()
         memo = json.get('memo')
         assert isinstance(memo, dict)

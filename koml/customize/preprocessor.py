@@ -23,12 +23,18 @@ class RemovePosPreprocessor(Preprocessor):
 
     def process(self, sentence: KoreanSentence) -> KoreanSentence:
         rule = Rule(npos=self.npos)
-        holder = [] 
+        holder = []
+        # too short -> not processing
+        if len(sentence.tags) <= 2:
+            return sentence
         for tag in sentence.tags:
             if tag.surface.isspace() and holder and holder[-1].surface.isspace():
                 continue
             judge = rule.judge_tag(tag)
             if judge:
+                holder.append(tag)
+            # 왜 is an exception
+            elif tag.surface == '왜':
                 holder.append(tag)
         sentence.tags = holder
         return sentence

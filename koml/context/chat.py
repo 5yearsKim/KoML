@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 class Chat:
-    def __init__(self, question: str, answer: str, cid: str|None) -> None:
+    def __init__(self, question: str, answer: str, cid: str|None=None) -> None:
         self.question: str = question
         self.answer:str = answer
         self.cid: str|None = cid

@@ -63,11 +63,11 @@ class PatternMatcher:
             return None
         
 
-    def save(self, save_path='') -> None:
+    def save(self, save_path: str) -> None:
         with open(save_path, 'wb') as fw:
             pickle.dump(self.patterns, fw)
 
-    def load(self, load_path='') -> None:
+    def load(self, load_path: str) -> None:
         with open(load_path, 'rb') as fr:
             patterns = pickle.load(fr)
             self.patterns = patterns

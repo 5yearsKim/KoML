@@ -1,12 +1,7 @@
 {
   "history": [],
-  "user": {
-    "name": "5yearsKim",
-    "age": 27
-  },
-  "bot": {
-    "name": "onion-bot",
-    "age": 3
-  },
-  "star": {}
+  "memo": {
+    "user_name": "OnionKim",
+    "user_age": 27
+  }
 }

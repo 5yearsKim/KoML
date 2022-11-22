@@ -25,6 +25,7 @@ class KomlBot:
             for case in handler.cases:
                 self.matcher.add(case)
         if save_path:
+            self.matcher.save(save_path)
             print(f'saved to {save_path}!')
     
     def load(self, load_path: str) -> None:
@@ -45,7 +46,6 @@ class KomlBot:
     def converse(self) -> None:
         context = Context()
         while True:
-            print(context)
             question = input('<< ')
             answer = self.respond(question, context)
             print(f'>> {answer}')
