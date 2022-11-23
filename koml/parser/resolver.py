@@ -29,7 +29,11 @@ class Resolver:
         raw_tag = RawTag(tag, attr)
         self.stack.append(raw_tag)
     
-    def push_content(self, content: str) -> None:
+    def push_content(self, content: str, state: KomlState) -> None:
+        if not content:
+            return
+        if state in [KomlState.IN_FOLLOW, KomlState.IN_PATTERN]:
+            content = content.strip()
         self.stack.append(content)
 
     def finalize(self) -> Case:

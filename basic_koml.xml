@@ -5,7 +5,25 @@
   <case>
     <pattern>ㅋ</pattern>
     <template>왜웃어ㅋㅋㅋㅋ</template>
+  </case>
 
+  <case>
+    <pattern>
+      <li>안녕</li>
+      <li>하이</li>
+    </pattern>
+    <template>
+      <random>
+        <ri weight='2'>안녕~~~</ri>
+        <ri>반가워!</ri>
+      </random>
+    </template>
+  </case>
+
+
+  <case>
+    <pattern>내 이름은 <blank pos='NN'/></pattern>
+    <template>안녕 <set key='username'><blank/></set>! 만나서 반가워ㅋㅋ</template>
   </case>
 
   <case>

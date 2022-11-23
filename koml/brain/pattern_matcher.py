@@ -7,8 +7,8 @@ from .pattern_rule import PatternRule
 
 
 class PatternMatcher:
-    def __init__(self, custom_bag: CustomBag) -> None:
-        self.ruler: KoreanRuleHelper = KoreanRuleHelper()
+    def __init__(self, custom_bag: CustomBag, space_sensitive: bool=True) -> None:
+        self.ruler: KoreanRuleHelper = KoreanRuleHelper(space_sensitive=space_sensitive)
         self.patterns: list[PatternRule] = []
         self.custom_bag: CustomBag = custom_bag 
 

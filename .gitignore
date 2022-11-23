@@ -21,6 +21,7 @@ var/
 # custom
 # cases/
 # customs/
+.mypy_cache
 brain_pkl/
 korean_rule_helper
 korean_rule_helper/

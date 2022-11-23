@@ -6,9 +6,9 @@ from .context import Context
 from .customize import CustomBag
 
 class KomlBot:
-    def __init__(self, custom_bag:CustomBag|None=None, debug: bool=False) -> None:
+    def __init__(self, custom_bag:CustomBag|None=None, space_sensitive: bool=False, debug: bool=False) -> None:
         self.custom_bag: CustomBag = custom_bag or CustomBag()
-        self.matcher: PatternMatcher = PatternMatcher(self.custom_bag)
+        self.matcher: PatternMatcher = PatternMatcher(self.custom_bag, space_sensitive=space_sensitive)
         self.solver: TemplateSolver = TemplateSolver(self.custom_bag)
         self.debug: bool = debug
 
@@ -32,6 +32,7 @@ class KomlBot:
         self.matcher.load(load_path)
         
     def respond(self, question: str, context: Context) -> str|None:
+        question = question.strip()
         if self.debug:
             ksent = KoreanSentence(question)
             print(ksent.tags)

@@ -73,7 +73,7 @@ class KomlHandler(ContentHandler):
     def characters(self, content: str) -> None:
         if content == '\n' or content.isspace():
             return
-        self.resolver.push_content(content)
+        self.resolver.push_content(content, self.state)
     
         
         

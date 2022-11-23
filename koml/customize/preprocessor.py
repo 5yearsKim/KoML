@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 from korean_rule_helper import KoreanSentence
+from korean_rule_helper.parser import Tag as KTag
 
 class Preprocessor(ABC):
     def __init__(self) -> None:
@@ -25,7 +26,7 @@ class FilterPreprocessor(Preprocessor):
         # too short -> not processing
         if len(sentence.tags) <= 2:
             return sentence
-        holder = []
+        holder: list[KTag] = []
         for tag in sentence.tags:
             if holder and holder[-1].surface.isspace() and tag.surface.isspace():
                 continue

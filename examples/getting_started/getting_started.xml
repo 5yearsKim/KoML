@@ -5,4 +5,9 @@
     <pattern>너_j 이름_j 뭐야?</pattern>
     <template>내 이름은 코엠엘챗봇이야!</template>
   </case>
+
+  <case>
+    <pattern>너_j 점심_j 뭐_j 먹었_e?</pattern>
+    <template>로봇이 밥을 왜먹음</template>
+  </case>
 </koml>
