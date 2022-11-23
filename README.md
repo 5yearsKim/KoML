@@ -1,7 +1,5 @@
 # KoML
 
-<br>
-
 ## Introduction 
 
 [AIML](https://en.wikipedia.org/wiki/Artificial_Intelligence_Markup_Language)은 누구나 쉽게 챗봇을 만들 수 있게끔 도와주는 언어에요. AIML을 이용한 챗봇은 [Loebner Prize](https://en.wikipedia.org/wiki/Loebner_Prize) 등 세계적인 챗봇 대회에서 우승을 하기도 했고 딥러닝 기반의 챗봇이 널리 쓰이는 요즘도 Rule-based 처리를 할 때 널리 사용되고 있어요.
@@ -81,6 +79,6 @@ bot.converse()
 
 ## Usage
 
-[**공식문서**](https://koml-docs.readthedocs.io/en/latest/) 를 참조해주세요!
+[**공식문서**](https://koml-docs.readthedocs.io) 를 참조해주세요!
 
-URL: https://koml-docs.readthedocs.io/en/latest/
+URL: https://koml-docs.readthedocs.io
