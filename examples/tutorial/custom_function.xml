@@ -6,6 +6,16 @@
     <template>음.. 지금 <func name='show_date'/>!</template>
   </case>
 
+  <case>
+    <!-- 숫자만 가져오기 -->
+    <pattern><blank pos='SN'/> 더하기 <blank pos='SN'/> 뭐_e_sf</pattern>
+    <template>
+      <func name='plus'>
+        <arg><blank idx='1'/></arg><arg><blank idx='2'/></arg>
+      </func> 이잖아ㅋㅋ 맞지?
+    </template>
+  </case>
+
   <case id = 'know_username'>
     <pattern>* 내 이름_j 뭔지 알아_s</pattern>
     <template>
